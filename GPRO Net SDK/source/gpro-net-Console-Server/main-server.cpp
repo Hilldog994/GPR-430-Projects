@@ -31,12 +31,62 @@
 
 
 #include "RakNet/RakPeerInterface.h"
+#include "RakNet/MessageIdentifiers.h"
 
+const int MAX_CLIENTS = 10;
+const int SERVER_PORT = 4024;
+
+/*Base Setup for project/Raknet provided by Daniel Buckstein
+http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
+*/
 
 int main(int const argc, char const* const argv[])
 {
+	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
+	RakNet::SocketDescriptor sd(SERVER_PORT,0);
+	RakNet::Packet* packet;
 
-	printf("test");
-	printf("\n\n");
+	peer->Startup(MAX_CLIENTS, &sd, 1);
+
+	printf("Starting server...\n");
+	peer->SetMaximumIncomingConnections(MAX_CLIENTS);
+
+	while (1)
+	{
+		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
+		{
+			switch (packet->data[0])
+			{
+			case ID_REMOTE_DISCONNECTION_NOTIFICATION:
+				printf("Another client has disconnected.\n");
+				break;
+			case ID_REMOTE_CONNECTION_LOST:
+				printf("Another client has lost the connection.\n");
+				break;
+			case ID_REMOTE_NEW_INCOMING_CONNECTION:
+				printf("Another client has connected.\n");
+				break;
+			case ID_CONNECTION_REQUEST_ACCEPTED:
+				printf("Our connection request has been accepted.\n");
+				break;
+			case ID_NEW_INCOMING_CONNECTION:
+				printf("A connection is incoming.\n");
+				break;
+			case ID_NO_FREE_INCOMING_CONNECTIONS:
+				printf("The server is full.\n");
+				break;
+			case ID_DISCONNECTION_NOTIFICATION:
+				printf("A client has disconnected.\n");
+				break;
+			case ID_CONNECTION_LOST:
+				printf("A client lost the connection.\n");
+				break;
+			default:
+				printf("Message with identifier %i has arrived.\n", packet->data[0]);
+				break;
+			}
+		}
+	}
+	RakNet::RakPeerInterface::DestroyInstance(peer);
 	system("pause");
 }
