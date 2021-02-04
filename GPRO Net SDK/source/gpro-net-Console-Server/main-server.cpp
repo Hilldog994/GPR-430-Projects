@@ -32,6 +32,8 @@
 
 #include "RakNet/RakPeerInterface.h"
 #include "RakNet/MessageIdentifiers.h"
+#include "RakNet/BitStream.h"
+#include "RakNet/RakNetTypes.h"
 
 const int MAX_CLIENTS = 10;
 const int SERVER_PORT = 4024;
@@ -39,6 +41,11 @@ const int SERVER_PORT = 4024;
 /*Base Setup for project/Raknet provided by Daniel Buckstein
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
 */
+
+enum GameMessages
+{
+	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1
+};
 
 int main(int const argc, char const* const argv[])
 {
@@ -81,6 +88,15 @@ int main(int const argc, char const* const argv[])
 			case ID_CONNECTION_LOST:
 				printf("A client lost the connection.\n");
 				break;
+			case ID_GAME_MESSAGE_1:
+			{
+				RakNet::RakString rs;
+				RakNet::BitStream bsIn(packet->data, packet->length, false);
+				bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+				bsIn.Read(rs);
+				printf("%s\n", rs.C_String());
+			}
+			break;
 			default:
 				printf("Message with identifier %i has arrived.\n", packet->data[0]);
 				break;
