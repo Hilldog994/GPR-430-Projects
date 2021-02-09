@@ -70,7 +70,7 @@ int main(int const argc, char const* const argv[])
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
 		{
-			switch (packet->data[0])
+			switch (packet->data[0]) //checking first message_id
 			{
 				case ID_REMOTE_DISCONNECTION_NOTIFICATION:
 					printf("Another client has disconnected.\n");
@@ -109,13 +109,16 @@ int main(int const argc, char const* const argv[])
 					break;
 				case ID_GAME_MESSAGE_1:
 				{
+					//get message sent from server
 					RakNet::RakString rs;
 					RakNet::BitStream bsIn(packet->data, packet->length, false);
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					printf("Recieved: %s\n", rs.C_String());
 
-					std::getline(std::cin, test);
+					printf("Type your message(type quit to exit) \n");
+
+					std::getline(std::cin, test); //get input
 					//std::cin >> test;
 					if (test == "quit")
 					{
@@ -123,9 +126,10 @@ int main(int const argc, char const* const argv[])
 					}
 					else
 					{
+						//write timestamp and typed message and send to server
 						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 						time = RakNet::GetTime();
-						bsOut.Write(time);
+						bsOut.Write(time); 
 
 						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
 						bsOut.Write(test.c_str());

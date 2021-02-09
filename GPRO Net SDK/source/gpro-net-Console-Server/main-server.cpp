@@ -68,7 +68,7 @@ int main(int const argc, char const* const argv[])
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
 		{
-			switch (packet->data[0])
+			switch (packet->data[0])//checking first message_id
 			{
 			case ID_REMOTE_DISCONNECTION_NOTIFICATION:
 				printf("Another client has disconnected.\n");
@@ -94,7 +94,7 @@ int main(int const argc, char const* const argv[])
 			case ID_CONNECTION_LOST:
 				printf("A client with address %s lost connection.\n", packet->systemAddress.ToString());
 				break;
-			case ID_TIMESTAMP:
+			case ID_TIMESTAMP: //actual messages sent from clients will start with timestamp
 			{
 				//printf("timestamp \n");
 				RakNet::RakString rs;
@@ -106,29 +106,31 @@ int main(int const argc, char const* const argv[])
 				//https://github.com/facebookarchive/RakNet/blob/master/Samples/Timestamping/Timestamping.cpp line 144 on getting the time to display
 				printf("%" PRINTF_64_BIT_MODIFIER "u ", time); //prints time stamp
 
-				//move pointer of data[sizeof(Raknet::MessageID) + sizeof(Raknet::Time)](second part of packet), switch case for that
+				//move pointer of data[sizeof(Raknet::MessageID) + sizeof(Raknet::Time)](second part of packet), switch case for that like first one
 				switch (packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)])
 				{
-					case ID_GAME_MESSAGE_1:
+					case ID_GAME_MESSAGE_1: //is used as the message sent from client joining
 					{
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
 
+						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-						bsOut.Write("Welcome to Server"); //send message back to client
+						bsOut.Write("Welcome to Server"); 
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
 						break;
 					}
-					case ID_CHAT_MESSAGE_1:
+					case ID_CHAT_MESSAGE_1: //message that was typed by a client
 					{
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
 
+						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-						bsOut.Write("Message Sent"); //send message back to client
+						bsOut.Write("Message Sent");
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
 						break;
@@ -141,7 +143,7 @@ int main(int const argc, char const* const argv[])
 				}
 				break;
 			}
-			case ID_GAME_MESSAGE_1:
+			case ID_GAME_MESSAGE_1: //was used to test sending back messages to client, not used anymore as packets now start with timestamp
 			{
 				printf("message \n");
 				RakNet::RakString rs;
