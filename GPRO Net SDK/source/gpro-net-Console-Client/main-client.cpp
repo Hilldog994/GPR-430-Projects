@@ -24,27 +24,30 @@
 
 #include "gpro-net/gpro-net.h"
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 
 #include "RakNet/RakPeerInterface.h"
 #include "RakNet/MessageIdentifiers.h"
 #include "RakNet/BitStream.h"
 #include "RakNet/RakNetTypes.h"
+#include "RakNet/GetTime.h"
+#include "RakNet/Gets.h"
 
 /*Base Setup for project/Raknet provided by Daniel Buckstein
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
 */
 
-#define IP_ADDRESS = "172.16.2.61"; //dont work
+#define IP_ADDRESS = "172.16.2.56"; //dont work
 const int SERVER_PORT = 4024;
 
 enum GameMessages
 {
-	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM+1
+	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM+1,
+	ID_CHAT_MESSAGE_1
 };
 
 int main(int const argc, char const* const argv[])
@@ -56,9 +59,10 @@ int main(int const argc, char const* const argv[])
 	peer->Startup(1, &sd, 1);
 
 	printf("Starting client... \n");
-	peer->Connect("172.16.2.61", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.60", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
+	RakNet::Time time;
 	while (1)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -77,10 +81,16 @@ int main(int const argc, char const* const argv[])
 			case ID_CONNECTION_REQUEST_ACCEPTED:
 				printf("Our connection request has been accepted.\n");
 
+				bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+				time = RakNet::GetTime();
+				bsOut.Write(time);
+				//peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+
 				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
 				bsOut.Write("Hello world");
 				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 				break;
+
 			case ID_NEW_INCOMING_CONNECTION:
 				printf("A connection is incoming.\n");
 				break;
@@ -93,6 +103,15 @@ int main(int const argc, char const* const argv[])
 			case ID_CONNECTION_LOST:
 				printf("Connection lost.\n");
 				break;
+			case ID_GAME_MESSAGE_1:
+			{
+				RakNet::RakString rs;
+				RakNet::BitStream bsIn(packet->data, packet->length, false);
+				bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+				bsIn.Read(rs);
+				printf("Recieved: %s\n", rs.C_String());
+				break;
+			}
 			default:
 				printf("Message with identifier %i has arrived.\n", packet->data[0]);
 				break;

@@ -34,6 +34,7 @@
 #include "RakNet/MessageIdentifiers.h"
 #include "RakNet/BitStream.h"
 #include "RakNet/RakNetTypes.h"
+#include "RakNet/GetTime.h"
 
 const int MAX_CLIENTS = 10;
 const int SERVER_PORT = 4024;
@@ -44,7 +45,8 @@ http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for Rak
 
 enum GameMessages
 {
-	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1
+	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1,
+	ID_CHAT_MESSAGE_1
 };
 
 int main(int const argc, char const* const argv[])
@@ -55,9 +57,11 @@ int main(int const argc, char const* const argv[])
 
 	peer->Startup(MAX_CLIENTS, &sd, 1);
 
+	peer->SetOccasionalPing(true);
 	printf("Starting server...\n");
 	peer->SetMaximumIncomingConnections(MAX_CLIENTS);
 
+	RakNet::BitStream bsOut;
 	while (1)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -77,24 +81,71 @@ int main(int const argc, char const* const argv[])
 				printf("Our connection request has been accepted.\n");
 				break;
 			case ID_NEW_INCOMING_CONNECTION:
-				printf("A connection is incoming.\n");
+				printf("A connection with address %s is incoming.\n", packet->systemAddress.ToString());
 				break;
 			case ID_NO_FREE_INCOMING_CONNECTIONS:
 				printf("The server is full.\n");
 				break;
 			case ID_DISCONNECTION_NOTIFICATION:
-				printf("A client has disconnected.\n");
+				printf("A client with address %s has disconnected.\n", packet->systemAddress.ToString());
 				break;
 			case ID_CONNECTION_LOST:
-				printf("A client lost the connection.\n");
+				printf("A client with address %s lost connection.\n", packet->systemAddress.ToString());
 				break;
+			case ID_TIMESTAMP:
+			{
+
+				//printf("timestamp \n");
+				RakNet::RakString rs;
+				RakNet::Time time;
+				RakNet::BitStream bsIn(packet->data, packet->length, false);
+				bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+				bsIn.Read(time); //read timestamp
+
+				//https://github.com/facebookarchive/RakNet/blob/master/Samples/Timestamping/Timestamping.cpp line 144 on getting the time to display
+				printf("%" PRINTF_64_BIT_MODIFIER "u ", time); //prints time stamp
+
+				//move pointer of data[sizeof(Raknet::MessageID) + sizeof(Raknet::Time)](second part of packet), switch case for that
+				switch (packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)])
+				{
+					case ID_GAME_MESSAGE_1:
+					{
+						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+						bsIn.Read(rs); //read message
+						printf("%s", rs.C_String());
+
+						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+						bsOut.Write("Welcome to Server"); //send message back to client
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						break;
+					}
+					case ID_CHAT_MESSAGE_1:
+					{
+						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+						bsIn.Read(rs); //read message
+						printf("%s", rs.C_String());
+					}
+					default:
+					{
+						printf("Message with identifier %i has arrived.\n", packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)]);
+						break;
+					}
+				}
+				break;
+			}
 			case ID_GAME_MESSAGE_1:
 			{
+				printf("message \n");
 				RakNet::RakString rs;
 				RakNet::BitStream bsIn(packet->data, packet->length, false);
 				bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 				bsIn.Read(rs);
 				printf("%s\n", rs.C_String());
+
+				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+				bsOut.Write(" World");
+				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+				break;
 			}
 			break;
 			default:
