@@ -131,6 +131,17 @@ int main(int const argc, char const* const argv[])
 				}
 				break;
 			}
+			case ID_NAMES_REQUEST:
+			{
+				RakNet::RakString rs;
+				bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
+				bsOut.Write("list of names ....");
+				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+				bsOut.Reset();
+				break;
+				//printf("Names");
+				//bs
+			}
 			case ID_GAME_MESSAGE_1: //was used to test sending back messages to client, not used anymore as packets now start with timestamp
 			{
 				printf("message \n");

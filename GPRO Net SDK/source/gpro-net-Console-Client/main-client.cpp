@@ -104,13 +104,19 @@ int main(int const argc, char const* const argv[])
 					bsIn.Read(rs);
 					printf("Recieved: %s\n", rs.C_String());
 
-					printf("Type your message(type quit to exit) \n");
+					printf("Type your message(type /quit to exit | /names to get a list of connected users) \n");
 
 					std::getline(std::cin, test); //get input
 					//std::cin >> test;
-					if (test == "quit")
+					if (test == "/quit")
 					{
 						loop = false;
+					}
+					else if (test == "/names")
+					{
+						bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						bsOut.Reset();
 					}
 					else
 					{
@@ -118,6 +124,46 @@ int main(int const argc, char const* const argv[])
 						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 						time = RakNet::GetTime();
 						bsOut.Write(time); 
+
+						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+						bsOut.Write(test.c_str());
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+						bsOut.Reset();
+					}
+					break;
+				}
+				case ID_CHAT_MESSAGE_1:
+				{
+					break;
+				}
+				case ID_NAMES_REQUEST: //names request gotten back from server
+				{
+					RakNet::RakString rs;
+					RakNet::BitStream bsIn(packet->data, packet->length, false);
+					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+					bsIn.Read(rs);
+					printf("List of Names: %s\n", rs.C_String());
+
+					printf("Type your message(type /quit to exit | /names to get a list of connected users) \n");
+
+					std::getline(std::cin, test); //get input
+					//std::cin >> test;
+					if (test == "/quit")
+					{
+						loop = false;
+					}
+					else if (test == "/names")
+					{
+						bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						bsOut.Reset();
+					}
+					else
+					{
+						//write timestamp and typed message and send to server
+						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+						time = RakNet::GetTime();
+						bsOut.Write(time);
 
 						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
 						bsOut.Write(test.c_str());
