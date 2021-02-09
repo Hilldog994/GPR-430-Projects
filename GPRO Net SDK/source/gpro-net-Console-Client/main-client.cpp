@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <iostream>
 
 
@@ -35,7 +36,6 @@
 #include "RakNet/BitStream.h"
 #include "RakNet/RakNetTypes.h"
 #include "RakNet/GetTime.h"
-#include "RakNet/Gets.h"
 
 /*Base Setup for project/Raknet provided by Daniel Buckstein
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
@@ -52,6 +52,7 @@ enum GameMessages
 
 int main(int const argc, char const* const argv[])
 {
+	std::string test;
 	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
 	RakNet::SocketDescriptor sd;
 	RakNet::Packet* packet;
@@ -63,58 +64,81 @@ int main(int const argc, char const* const argv[])
 
 	RakNet::BitStream bsOut;
 	RakNet::Time time;
-	while (1)
+	bool loop = true;
+
+	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
 		{
 			switch (packet->data[0])
 			{
-			case ID_REMOTE_DISCONNECTION_NOTIFICATION:
-				printf("Another client has disconnected.\n");
-				break;
-			case ID_REMOTE_CONNECTION_LOST:
-				printf("Another client has lost the connection.\n");
-				break;
-			case ID_REMOTE_NEW_INCOMING_CONNECTION:
-				printf("Another client has connected.\n");
-				break;
-			case ID_CONNECTION_REQUEST_ACCEPTED:
-				printf("Our connection request has been accepted.\n");
+				case ID_REMOTE_DISCONNECTION_NOTIFICATION:
+					printf("Another client has disconnected.\n");
+					break;
+				case ID_REMOTE_CONNECTION_LOST:
+					printf("Another client has lost the connection.\n");
+					break;
+				case ID_REMOTE_NEW_INCOMING_CONNECTION:
+					printf("Another client has connected.\n");
+					break;
+				case ID_CONNECTION_REQUEST_ACCEPTED:
+					printf("Our connection request has been accepted.\n");
 
-				bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
-				time = RakNet::GetTime();
-				bsOut.Write(time);
-				//peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+					time = RakNet::GetTime();
+					bsOut.Write(time);
+					//peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 
-				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-				bsOut.Write("Hello world");
-				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-				break;
+					bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+					bsOut.Write("Hello world");
+					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+					bsOut.Reset();
+					break;
 
-			case ID_NEW_INCOMING_CONNECTION:
-				printf("A connection is incoming.\n");
-				break;
-			case ID_NO_FREE_INCOMING_CONNECTIONS:
-				printf("The server is full.\n");
-				break;
-			case ID_DISCONNECTION_NOTIFICATION:
-				printf("We have been disconnected.\n");
-				break;
-			case ID_CONNECTION_LOST:
-				printf("Connection lost.\n");
-				break;
-			case ID_GAME_MESSAGE_1:
-			{
-				RakNet::RakString rs;
-				RakNet::BitStream bsIn(packet->data, packet->length, false);
-				bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
-				bsIn.Read(rs);
-				printf("Recieved: %s\n", rs.C_String());
-				break;
-			}
-			default:
-				printf("Message with identifier %i has arrived.\n", packet->data[0]);
-				break;
+				case ID_NEW_INCOMING_CONNECTION:
+					printf("A connection is incoming.\n");
+					break;
+				case ID_NO_FREE_INCOMING_CONNECTIONS:
+					printf("The server is full.\n");
+					break;
+				case ID_DISCONNECTION_NOTIFICATION:
+					printf("We have been disconnected.\n");
+					break;
+				case ID_CONNECTION_LOST:
+					printf("Connection lost.\n");
+					break;
+				case ID_GAME_MESSAGE_1:
+				{
+					RakNet::RakString rs;
+					RakNet::BitStream bsIn(packet->data, packet->length, false);
+					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+					bsIn.Read(rs);
+					printf("Recieved: %s\n", rs.C_String());
+
+					std::getline(std::cin, test);
+					//std::cin >> test;
+					if (test == "quit")
+					{
+						loop = false;
+					}
+					else
+					{
+						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+						time = RakNet::GetTime();
+						bsOut.Write(time);
+
+						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+						bsOut.Write(test.c_str());
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+						bsOut.Reset();
+					}
+					break;
+				}
+				default:
+				{
+					printf("Message with identifier %i has arrived.\n", packet->data[0]);
+					break;
+				}
 			}
 		}
 	}

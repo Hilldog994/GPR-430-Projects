@@ -35,6 +35,8 @@
 #include "RakNet/BitStream.h"
 #include "RakNet/RakNetTypes.h"
 #include "RakNet/GetTime.h"
+#include "RakNet/Kbhit.h"
+#include "RakNet/Gets.h"
 
 const int MAX_CLIENTS = 10;
 const int SERVER_PORT = 4024;
@@ -94,7 +96,6 @@ int main(int const argc, char const* const argv[])
 				break;
 			case ID_TIMESTAMP:
 			{
-
 				//printf("timestamp \n");
 				RakNet::RakString rs;
 				RakNet::Time time;
@@ -112,22 +113,29 @@ int main(int const argc, char const* const argv[])
 					{
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
-						printf("%s", rs.C_String());
+						printf("%s\n", rs.C_String());
 
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
 						bsOut.Write("Welcome to Server"); //send message back to client
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						bsOut.Reset();
 						break;
 					}
 					case ID_CHAT_MESSAGE_1:
 					{
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
-						printf("%s", rs.C_String());
+						printf("%s\n", rs.C_String());
+
+						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+						bsOut.Write("Message Sent"); //send message back to client
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						bsOut.Reset();
+						break;
 					}
 					default:
 					{
-						printf("Message with identifier %i has arrived.\n", packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)]);
+						printf("Second message with identifier %i has arrived.\n", packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)]);
 						break;
 					}
 				}
