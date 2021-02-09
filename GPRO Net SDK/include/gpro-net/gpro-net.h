@@ -25,6 +25,17 @@
 #ifndef _GPRO_NET_H_
 #define _GPRO_NET_H_
 
+#include "RakNet/RakPeerInterface.h"
+#include "RakNet/MessageIdentifiers.h"
+#include "RakNet/BitStream.h"
+#include "RakNet/RakNetTypes.h"
+#include "RakNet/GetTime.h"
+
+enum GameMessages
+{
+	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1,
+	ID_CHAT_MESSAGE_1
+};
 
 
 #endif	// !_GPRO_NET_H_

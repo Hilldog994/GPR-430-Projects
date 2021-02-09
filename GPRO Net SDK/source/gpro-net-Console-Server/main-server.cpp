@@ -27,16 +27,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 
 
-#include "RakNet/RakPeerInterface.h"
-#include "RakNet/MessageIdentifiers.h"
-#include "RakNet/BitStream.h"
-#include "RakNet/RakNetTypes.h"
-#include "RakNet/GetTime.h"
-#include "RakNet/Kbhit.h"
-#include "RakNet/Gets.h"
 
 const int MAX_CLIENTS = 10;
 const int SERVER_PORT = 4024;
@@ -45,11 +38,6 @@ const int SERVER_PORT = 4024;
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
 */
 
-enum GameMessages
-{
-	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1,
-	ID_CHAT_MESSAGE_1
-};
 
 int main(int const argc, char const* const argv[])
 {
@@ -117,7 +105,7 @@ int main(int const argc, char const* const argv[])
 
 						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-						bsOut.Write("Welcome to Server"); 
+						bsOut.Write("Welcome to the server"); 
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
 						break;

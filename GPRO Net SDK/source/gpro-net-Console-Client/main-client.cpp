@@ -26,16 +26,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <string>
 #include <iostream>
 
 
-#include "RakNet/RakPeerInterface.h"
-#include "RakNet/MessageIdentifiers.h"
-#include "RakNet/BitStream.h"
-#include "RakNet/RakNetTypes.h"
-#include "RakNet/GetTime.h"
 
 /*Base Setup for project/Raknet provided by Daniel Buckstein
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
@@ -43,12 +37,6 @@ http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for Rak
 
 #define IP_ADDRESS = "172.16.2.56"; //dont work
 const int SERVER_PORT = 4024;
-
-enum GameMessages
-{
-	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM+1,
-	ID_CHAT_MESSAGE_1
-};
 
 int main(int const argc, char const* const argv[])
 {
