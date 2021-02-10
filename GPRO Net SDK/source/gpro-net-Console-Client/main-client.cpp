@@ -48,7 +48,7 @@ int main(int const argc, char const* const argv[])
 	peer->Startup(1, &sd, 1);
 
 	printf("Starting client... \n");
-	peer->Connect("172.16.2.60", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.61", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
 	RakNet::Time time;
