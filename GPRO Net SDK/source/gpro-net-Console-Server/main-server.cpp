@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-
-
+#include <iostream>
+#include <fstream>
 
 const int MAX_CLIENTS = 10;
 const int SERVER_PORT = 4024;
@@ -41,6 +41,13 @@ http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for Rak
 
 int main(int const argc, char const* const argv[])
 {
+	bool loop = true;
+	std::ofstream output;
+	output.open("TextLog.txt");
+	
+	//output.clear(); //clear log to be only current log saved to file
+
+	std::string message;
 	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
 	RakNet::SocketDescriptor sd(SERVER_PORT,0);
 	RakNet::Packet* packet;
@@ -49,17 +56,24 @@ int main(int const argc, char const* const argv[])
 
 	peer->SetOccasionalPing(true);
 	printf("Starting server...\n");
+	output << "Starting server...\n";
 	peer->SetMaximumIncomingConnections(MAX_CLIENTS);
 
+	//output.close();
+	//exit(0);
 	RakNet::BitStream bsOut;
-	while (1)
+
+
+	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
 		{
 			switch (packet->data[0])//checking first message_id
 			{
 			case ID_REMOTE_DISCONNECTION_NOTIFICATION:
-				printf("Another client has disconnected.\n");
+				message = "Another client has disconnected.\n";
+				printf(message.c_str());
+				output << message;
 				break;
 			case ID_REMOTE_CONNECTION_LOST:
 				printf("Another client has lost the connection.\n");
@@ -71,13 +85,17 @@ int main(int const argc, char const* const argv[])
 				printf("Our connection request has been accepted.\n");
 				break;
 			case ID_NEW_INCOMING_CONNECTION:
+				message = packet->systemAddress.ToString();
 				printf("A connection with address %s is incoming.\n", packet->systemAddress.ToString());
+				output << "A connection with address " + message + " is incoming.\n";
 				break;
 			case ID_NO_FREE_INCOMING_CONNECTIONS:
 				printf("The server is full.\n");
 				break;
 			case ID_DISCONNECTION_NOTIFICATION:
 				printf("A client with address %s has disconnected.\n", packet->systemAddress.ToString());
+				loop = false;
+				output.close();
 				break;
 			case ID_CONNECTION_LOST:
 				printf("A client with address %s lost connection.\n", packet->systemAddress.ToString());
@@ -102,6 +120,7 @@ int main(int const argc, char const* const argv[])
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
+						output << rs.C_String() << "\n";
 
 						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
@@ -115,6 +134,7 @@ int main(int const argc, char const* const argv[])
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
+						output << rs.C_String() << "\n";
 
 						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
@@ -156,13 +176,21 @@ int main(int const argc, char const* const argv[])
 				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 				break;
 			}
-			break;
+			case ID_CLOSE_SERVER:
+			{
+				loop = false;
+				output.close();
+				break;
+			}
 			default:
 				printf("Message with identifier %i has arrived.\n", packet->data[0]);
 				break;
 			}
 		}
 	}
+	//http://www.raknet.net/raknet/manual/detailedimplementation.html for shutting down
+	peer->Shutdown(300);
 	RakNet::RakPeerInterface::DestroyInstance(peer);
+	//output.close();
 	system("pause");
 }

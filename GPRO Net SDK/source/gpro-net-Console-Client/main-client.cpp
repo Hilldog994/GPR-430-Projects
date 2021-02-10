@@ -110,6 +110,9 @@ int main(int const argc, char const* const argv[])
 					//std::cin >> test;
 					if (test == "/quit")
 					{
+						//bsOut.Write((RakNet::MessageID)ID_CLOSE_SERVER);
+						//peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						//bsOut.Reset();
 						loop = false;
 					}
 					else if (test == "/names")
@@ -151,6 +154,7 @@ int main(int const argc, char const* const argv[])
 					if (test == "/quit")
 					{
 						loop = false;
+						
 					}
 					else if (test == "/names")
 					{
@@ -180,6 +184,8 @@ int main(int const argc, char const* const argv[])
 			}
 		}
 	}
+	//http://www.raknet.net/raknet/manual/detailedimplementation.html for shutting down
+	peer->Shutdown(300);
 	RakNet::RakPeerInterface::DestroyInstance(peer);
 	system("pause");
 }
