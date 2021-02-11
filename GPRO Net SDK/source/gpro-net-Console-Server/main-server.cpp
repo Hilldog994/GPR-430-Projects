@@ -24,7 +24,6 @@
 
 #include "gpro-net/gpro-net.h"
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -86,7 +85,6 @@ int main(int const argc, char const* const argv[])
 				message = "Another client has lost the connection.\n";
 				printf(message.c_str());
 				output << message;
-
 				break;
 			case ID_REMOTE_NEW_INCOMING_CONNECTION:
 				message = "Another client has connected.\n";
@@ -105,6 +103,10 @@ int main(int const argc, char const* const argv[])
 				printf("A connection is incoming.\n");
 				output << "A connection is incoming.\n";
 
+				//nicknameList[message] = "TestUser";
+				//printf( "TestUser has joined \n");
+				//output << "TestUser" << " has joined \n";
+				
 				//add user to list with name User1,User2, etc.
 				nicknameList[message] = "User" + std::to_string(userNameSuffix);
 				printf("User: %s has joined \n" , nicknameList[message].c_str());
@@ -129,13 +131,22 @@ int main(int const argc, char const* const argv[])
 					nicknameList.erase(message);
 				}
 
-				loop = false;
+				//loop = false;
 				output.close();
 				break;
 			case ID_CONNECTION_LOST:
 				message = packet->systemAddress.ToString();
 				printf("A client %s lost connection.\n", nicknameList[message].c_str());
 				output << "A client " << nicknameList[message].c_str() << " lost connection.\n";
+
+				//remove disconnected user from current user list
+				iter = nicknameList.find(message);
+				if (iter != nicknameList.end())
+				{
+					nicknameList.erase(message);
+				}
+
+				output.close();
 				break;
 			case ID_TIMESTAMP: //actual messages sent from clients will start with timestamp
 			{
@@ -182,6 +193,12 @@ int main(int const argc, char const* const argv[])
 						bsOut.Write("Message Sent");
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
+						break;
+					}
+					case ID_MENU:
+					{
+						bsOut.Write((RakNet::MessageID)ID_MENU);
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						break;
 					}
 					default:
@@ -231,6 +248,12 @@ int main(int const argc, char const* const argv[])
 			{
 				loop = false;
 				output.close();
+				break;
+			}
+			case ID_MENU:
+			{
+				bsOut.Write((RakNet::MessageID)ID_MENU);
+				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 				break;
 			}
 			default:

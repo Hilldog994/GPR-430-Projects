@@ -37,6 +37,7 @@ enum GameMessages
 	ID_CHAT_MESSAGE_1,
 	ID_NAMES_REQUEST,
 	ID_CLOSE_SERVER,
+	ID_MENU
 };
 
 
