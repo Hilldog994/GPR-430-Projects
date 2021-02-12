@@ -22,6 +22,14 @@
 	Main include for framework.
 */
 
+/*
+ Author:				Stephen Hill & Cameron Murphy
+ Class:					GPR-430-02
+ Assignment:			Project 1 Server/Client Chat Application
+ Due Date:              2/11/21
+ Purpose:               Holds enum for game message types
+*/
+
 #ifndef _GPRO_NET_H_
 #define _GPRO_NET_H_
 

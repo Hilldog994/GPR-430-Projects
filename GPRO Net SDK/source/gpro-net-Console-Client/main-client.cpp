@@ -22,6 +22,14 @@
 	Main source for console client application.
 */
 
+/*
+ Author:				Stephen Hill & Cameron Murphy
+ Class:					GPR-430-02
+ Assignment:			Project 1 Server/Client Chat Application
+ Due Date:              2/11/21
+ Purpose:               Handles client operations
+*/
+
 #include "gpro-net/gpro-net.h"
 
 #include <stdio.h>
@@ -76,17 +84,9 @@ int main(int const argc, char const* const argv[])
 				case ID_CONNECTION_REQUEST_ACCEPTED:
 					printf("Our connection request has been accepted.\n");
 
-					//displayName = nicknameList[packet->systemAddress.ToString()];
-					bsOut.Write((RakNet::MessageID)ID_NEW_INCOMING_CONNECTION);
-					bsOut.Write(displayName);
-					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-					bsOut.Reset();
-
 					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 					time = RakNet::GetTime();
 					bsOut.Write(time);
-					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-					
 					bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
 					bsOut.Write("Hello world");
 					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
@@ -118,13 +118,13 @@ int main(int const argc, char const* const argv[])
 					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to privately message them\n");
 
 					std::getline(std::cin, test); //get input
-					//std::cin >> test;
 
-					if (test == "/quit")
+					//Determines if text is message or command
+					if (test == "/quit") //If quitting cancels the loop
 					{
 						loop = false;
 					}
-					else if (test == "/names")
+					else if (test == "/names") //sends message to get names from server
 					{
 						bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
@@ -142,7 +142,7 @@ int main(int const argc, char const* const argv[])
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 						bsOut.Reset();
 					}
-					else
+					else //If none of those commands is a regular message
 					{
 						test = displayName + ": " + test + " (Public)";
 
@@ -158,7 +158,7 @@ int main(int const argc, char const* const argv[])
 					}
 					break;
 				}
-				case ID_CHAT_MESSAGE_1:
+				case ID_CHAT_MESSAGE_1: //Receives chat message
 				{
 					RakNet::RakString rs;
 					RakNet::BitStream bsIn(packet->data, packet->length, false);
@@ -178,19 +178,19 @@ int main(int const argc, char const* const argv[])
 					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to privately message them\n");
 
 					std::getline(std::cin, test); //get input
-					//std::cin >> test;
 
-					if (test == "/quit")
+					//Determines if text is message or command
+					if (test == "/quit") //If quitting cancels the loop
 					{
 						loop = false;
 					}
-					else if (test == "/names")
+					else if (test == "/names") //sends message to get names from server
 					{
 						bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
 					}
-					else if (test.front() == '(' && test.find(')') != std::string::npos) //Determines if message starts with an opening paranthesis and closes at some point
+					else if (test.front() == '(' && test.find(')') != std::string::npos) //Determines if message starts with an opening paranthesis and closes at some point (private message)
 					{
 						//write timestamp and typed message and send to server
 						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
@@ -202,7 +202,7 @@ int main(int const argc, char const* const argv[])
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 						bsOut.Reset();
 					}
-					else
+					else //If none of those commands is a regular message
 					{
 						test = displayName + ": " + test + " (Public)";
 
@@ -225,9 +225,6 @@ int main(int const argc, char const* const argv[])
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					displayName = rs;
-
-				    //printf("Display name is ");
-					//printf(displayName.c_str());
 					break;
 				}
 				default:
