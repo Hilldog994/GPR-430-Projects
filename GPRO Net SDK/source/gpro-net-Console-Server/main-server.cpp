@@ -69,7 +69,6 @@ int main(int const argc, char const* const argv[])
 	//exit(0);
 	RakNet::BitStream bsOut;
 
-
 	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -190,6 +189,12 @@ int main(int const argc, char const* const argv[])
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
 						output << rs.C_String() << "\n";
+						
+						//send a message back to client
+						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+						bsOut.Write("Message Received");
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, false);
+						bsOut.Reset();
 
 						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
@@ -246,7 +251,6 @@ int main(int const argc, char const* const argv[])
 							bsOut.Write("Private Message Sent");
 							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 							bsOut.Reset();
-							
 						}
 						break;
 					}

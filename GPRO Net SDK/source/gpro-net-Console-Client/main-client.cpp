@@ -52,7 +52,7 @@ int main(int const argc, char const* const argv[])
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
-	peer->Connect("172.16.2.51", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.65", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
 	RakNet::Time time;
@@ -160,6 +160,11 @@ int main(int const argc, char const* const argv[])
 				}
 				case ID_CHAT_MESSAGE_1:
 				{
+					RakNet::RakString rs;
+					RakNet::BitStream bsIn(packet->data, packet->length, false);
+					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+					bsIn.Read(rs);
+					printf("%s\n", rs.C_String());
 					break;
 				}
 				case ID_NAMES_REQUEST: //names request gotten back from server
@@ -213,7 +218,7 @@ int main(int const argc, char const* const argv[])
 					}
 					break;
 				}
-				case ID_STORE_NAME:
+				case ID_STORE_NAME: //stores users name in clients script
 				{
 					RakNet::RakString rs;
 					RakNet::BitStream bsIn(packet->data, packet->length, false);
@@ -221,8 +226,8 @@ int main(int const argc, char const* const argv[])
 					bsIn.Read(rs);
 					displayName = rs;
 
-				    printf("Display name is ");
-					printf(displayName.c_str());
+				    //printf("Display name is ");
+					//printf(displayName.c_str());
 					break;
 				}
 				default:
