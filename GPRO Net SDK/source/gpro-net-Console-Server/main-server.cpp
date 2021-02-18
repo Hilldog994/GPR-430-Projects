@@ -24,8 +24,8 @@
 /*
  Author:				Stephen Hill & Cameron Murphy
  Class:					GPR-430-02
- Assignment:			Project 1 Server/Client Chat Application
- Due Date:              2/11/21
+ Assignment:			Project 2 Asynchronous Networked Architecture & Minigames
+ Due Date:              2/26/21
  Purpose:               Handles server operations
 */
 
@@ -49,8 +49,6 @@ http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for Rak
 int main(int const argc, char const* const argv[])
 {
 	bool loop = true;
-	std::ofstream output;
-	output.open("TextLog.txt");
 	
 	//output.clear(); //clear log to be only current log saved to file
 	//first key is the address gotten from packet->systemAddress.ToString(), second is the nickname
@@ -71,7 +69,7 @@ int main(int const argc, char const* const argv[])
 
 	peer->SetOccasionalPing(true);
 	printf("Starting server...\n");
-	output << "Starting server...\n";
+
 	peer->SetMaximumIncomingConnections(MAX_CLIENTS);
 
 	RakNet::BitStream bsOut;
@@ -85,35 +83,35 @@ int main(int const argc, char const* const argv[])
 			case ID_REMOTE_DISCONNECTION_NOTIFICATION:
 				message = "Another client has disconnected.\n";
 				printf(message.c_str());
-				output << message;
+
 				break;
 			case ID_REMOTE_CONNECTION_LOST:
 				message = "Another client has lost the connection.\n";
 				printf(message.c_str());
-				output << message;
+	
 				break;
 			case ID_REMOTE_NEW_INCOMING_CONNECTION:
 				message = "Another client has connected.\n";
 				printf(message.c_str());
-				output << message;
+
 
 				break;
 			case ID_CONNECTION_REQUEST_ACCEPTED:
 				message = "Our connection request has been accepted.\n";
 				printf(message.c_str());
-				output << message;
+
 
 				break;
 			case ID_NEW_INCOMING_CONNECTION:
 				//message = packet->systemAddress.ToString();
 				sa = packet->systemAddress;
 				printf("A connection is incoming.\n");
-				output << "A connection is incoming.\n";
+
 				
 				//add user to list with name User1,User2, etc.
 				nicknameList[sa] = "User" + std::to_string(userNameSuffix);
 				printf("User: %s has joined \n" , nicknameList[sa].c_str());
-				output << "User: " << nicknameList[sa].c_str() << " has joined \n";
+
 				
 				//send id back to user
 				bsOut.Write((RakNet::MessageID)ID_STORE_NAME);
@@ -127,13 +125,12 @@ int main(int const argc, char const* const argv[])
 			case ID_NO_FREE_INCOMING_CONNECTIONS:
 				message = "The server is full.\n";
 				printf(message.c_str());
-				output << message;
+
 				break;
 			case ID_DISCONNECTION_NOTIFICATION:
 				//message = packet->systemAddress.ToString();
 				sa = packet->systemAddress;
 				printf("User: %s has disconnected \n", nicknameList[sa].c_str());
-				output << "User: " << nicknameList[sa].c_str() << " has disconnected \n";
 
 				//remove disconnected user from current user list
 				iter = nicknameList.find(sa);
@@ -146,13 +143,11 @@ int main(int const argc, char const* const argv[])
 				{
 					loop = false;
 				}
-				output.close();
 				break;
 			case ID_CONNECTION_LOST:
 				//message = packet->systemAddress.ToString();
 				sa = packet->systemAddress;
 				printf("A client %s lost connection.\n", nicknameList[sa].c_str());
-				output << "A client " << nicknameList[sa].c_str() << " lost connection.\n";
 
 				//remove disconnected user from current user list
 				iter = nicknameList.find(sa);
@@ -166,7 +161,6 @@ int main(int const argc, char const* const argv[])
 					loop = false;
 				}
 
-				output.close();
 				break;
 			case ID_TIMESTAMP: //actual messages sent from clients will start with timestamp
 			{
@@ -179,7 +173,6 @@ int main(int const argc, char const* const argv[])
 
 				//https://github.com/facebookarchive/RakNet/blob/master/Samples/Timestamping/Timestamping.cpp line 144 on getting the time to display
 				printf("[%s]: ", std::to_string(time).c_str()); //prints time stamp
-				output << "[" << std::to_string(time)<< "]: ";
 
 				//move pointer of data[sizeof(Raknet::MessageID) + sizeof(Raknet::Time)](second part of packet), switch case for that like first one
 				switch (packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)])
@@ -189,7 +182,6 @@ int main(int const argc, char const* const argv[])
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
-						output << rs.C_String() << "\n";
 
 						//send a message back to client welcoming them
 						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
@@ -206,8 +198,7 @@ int main(int const argc, char const* const argv[])
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 						bsIn.Read(rs); //read message
 						printf("%s\n", rs.C_String());
-						output << rs.C_String() << "\n";
-						
+
 						//send a message back to client
 						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
 						bsOut.Write(rs);
@@ -221,141 +212,23 @@ int main(int const argc, char const* const argv[])
 						bsOut.Reset();
 						break;
 					}
-					case ID_PRIVATE_MESSAGE: //taking message sent by client and sending it to specified user
-					{
-						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
-						bsIn.Read(rs); //read message
-
-						std::string text = rs.C_String();
-
-						std::string user;
-						std::string message;
-						RakNet::SystemAddress sentAddress;
-						bool addressFound = false;
-
-						bool onMessage = false;
-						bool userExists = false;
-
-					    //Seperates the users name and the message
-						for (int i = 0; i < text.length(); i++)
-						{
-							char c = text.at(i);
-							if (onMessage)
-							{
-								message += c;
-							}
-							else if (c != '(')
-							{
-								if (c == ')')
-								{
-									onMessage = true;
-								}
-								else
-								{
-									user += c;
-								}
-							}
-						}
-
-						//look through nickname list, add each name to the list to send
-						for (iter = nicknameList.begin(); iter != nicknameList.end(); iter++)
-						{
-							if (iter->second == user)
-							{
-								sentAddress = iter->first;
-								addressFound = true;
-							}
-						}
-
-						if (addressFound) //If users exists sends private message
-						{
-							text = nicknameList[packet->systemAddress.ToString()] + ": " + message + " (Private)\n";
-							printf(text.c_str());
-							output << text;
-
-							//send a message back to client
-							bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-							bsOut.Write(text.c_str());
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, sentAddress, false);
-							bsOut.Reset();
-
-							//send a message back to client
-							bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-							bsOut.Write("Message Sent");
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-							bsOut.Reset();
-						}
-						else //If not sends as regular message
-						{
-							text = nicknameList[packet->systemAddress.ToString()] + ": " + text + " (Public)\n";
-							//send a message back to client
-							printf(text.c_str());
-							output << text;
-
-							bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-							bsOut.Write(text.c_str());
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-							bsOut.Reset();
-
-							//send a message back to client
-							bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-							bsOut.Write("Message Sent");
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-							bsOut.Reset();
-						}
-						break;
-					}
 					default:
 					{
 						message = std::to_string(packet->data[sizeof(RakNet::MessageID) + sizeof(RakNet::Time)]);
 						printf("Second message with identifier %s has arrived.\n", message.c_str());
-						output << "Second message with identifier " << message << " has arrived.\n";
 						break;
 					}
 				}
-				break;
-			}
-			case ID_NAMES_REQUEST:
-			{
-				std::string namesList="\n";
-
-				//look through nickname list, add each name to the list to send
-				for (iter = nicknameList.begin(); iter != nicknameList.end(); iter++)
-				{
-					namesList = namesList + iter->second.c_str() + "\n";
-				}
-
-				//send list of user names to client
-				bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
-				bsOut.Write(namesList.c_str());
-				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-				bsOut.Reset();
-				break;
-			}
-			case ID_GAME_MESSAGE_1: //was used to test sending back messages to client, not used anymore as packets now start with timestamp
-			{
-				printf("message \n");
-				RakNet::RakString rs;
-				RakNet::BitStream bsIn(packet->data, packet->length, false);
-				bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
-				bsIn.Read(rs);
-				printf("%s\n", rs.C_String());
-
-				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-				bsOut.Write(" World");
-				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 				break;
 			}
 			case ID_CLOSE_SERVER:
 			{
 				loop = false;
-				output.close();
 				break;
 			}
 			default:
 				message = std::to_string(packet->data[0]);
 				printf("Message with identifier %s has arrived.\n", message.c_str());
-				output << "Message with identifier " << message << " has arrived.\n";
 				break;
 			}
 		}

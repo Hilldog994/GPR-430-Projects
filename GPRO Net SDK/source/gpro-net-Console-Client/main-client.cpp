@@ -25,8 +25,8 @@
 /*
  Author:				Stephen Hill & Cameron Murphy
  Class:					GPR-430-02
- Assignment:			Project 1 Server/Client Chat Application
- Due Date:              2/11/21
+ Assignment:			Project 2 Asynchronous Networked Architecture & Minigames
+ Due Date:              2/26/21
  Purpose:               Handles client operations
 */
 
@@ -114,7 +114,7 @@ int main(int const argc, char const* const argv[])
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					printf("Recieved: %s\n\n", rs.C_String());
-
+					/*
 					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to privately message them\n");
 
 					std::getline(std::cin, test); //get input
@@ -155,7 +155,7 @@ int main(int const argc, char const* const argv[])
 						bsOut.Write(test.c_str());
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 						bsOut.Reset();
-					}
+					}*/
 					break;
 				}
 				case ID_CHAT_MESSAGE_1: //Receives chat message
@@ -165,57 +165,6 @@ int main(int const argc, char const* const argv[])
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					printf("%s\n", rs.C_String());
-					break;
-				}
-				case ID_NAMES_REQUEST: //names request gotten back from server
-				{
-					RakNet::RakString rs;
-					RakNet::BitStream bsIn(packet->data, packet->length, false);
-					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
-					bsIn.Read(rs);
-					printf("List of Names: %s\n", rs.C_String());
-
-					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to privately message them\n");
-
-					std::getline(std::cin, test); //get input
-
-					//Determines if text is message or command
-					if (test == "/quit") //If quitting cancels the loop
-					{
-						loop = false;
-					}
-					else if (test == "/names") //sends message to get names from server
-					{
-						bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-						bsOut.Reset();
-					}
-					else if (test.front() == '(' && test.find(')') != std::string::npos) //Determines if message starts with an opening paranthesis and closes at some point (private message)
-					{
-						//write timestamp and typed message and send to server
-						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
-						time = RakNet::GetTime();
-						bsOut.Write(time);
-
-						bsOut.Write((RakNet::MessageID)ID_PRIVATE_MESSAGE);
-						bsOut.Write(test.c_str());
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-						bsOut.Reset();
-					}
-					else //If none of those commands is a regular message
-					{
-						test = displayName + ": " + test + " (Public)";
-
-						//write timestamp and typed message and send to server
-						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
-						time = RakNet::GetTime();
-						bsOut.Write(time);
-
-						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-						bsOut.Write(test.c_str());
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-						bsOut.Reset();
-					}
 					break;
 				}
 				case ID_STORE_NAME: //stores users name in clients script
