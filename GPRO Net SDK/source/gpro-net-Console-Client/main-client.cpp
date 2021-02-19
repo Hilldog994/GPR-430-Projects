@@ -60,12 +60,18 @@ int main(int const argc, char const* const argv[])
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
-	peer->Connect("172.16.2.65", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.59", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
-	RakNet::Time time;
+	//RakNet::Time time;
 	bool loop = true;
 
+	gpro_consoleToggleCursor(true);
+	//create player board and reset it
+	gpro_battleship mBoard;
+	gpro_battleship_reset(mBoard);
+
+	bs_Message msg;
 	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -83,14 +89,17 @@ int main(int const argc, char const* const argv[])
 					break;
 				case ID_CONNECTION_REQUEST_ACCEPTED:
 					printf("Our connection request has been accepted.\n");
-
-					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+					msg.iIndex = 'A';
+					msg.jIndex = 1;
+					bsOut << msg;
+					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+					/*bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 					time = RakNet::GetTime();
 					bsOut.Write(time);
 					bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
 					bsOut.Write("Hello world");
 					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-					bsOut.Reset();
+					bsOut.Reset();*/
 
 					break;
 

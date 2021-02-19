@@ -73,7 +73,6 @@ int main(int const argc, char const* const argv[])
 	peer->SetMaximumIncomingConnections(MAX_CLIENTS);
 
 	RakNet::BitStream bsOut;
-
 	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -103,25 +102,39 @@ int main(int const argc, char const* const argv[])
 
 				break;
 			case ID_NEW_INCOMING_CONNECTION:
+			{
 				//message = packet->systemAddress.ToString();
 				sa = packet->systemAddress;
 				printf("A connection is incoming.\n");
 
-				
+
 				//add user to list with name User1,User2, etc.
 				nicknameList[sa] = "User" + std::to_string(userNameSuffix);
-				printf("User: %s has joined \n" , nicknameList[sa].c_str());
+				printf("User: %s has joined \n", nicknameList[sa].c_str());
 
-				
+
+				/*
 				//send id back to user
 				bsOut.Write((RakNet::MessageID)ID_STORE_NAME);
 				bsOut.Write(nicknameList[sa].c_str());
 				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 				bsOut.Reset();
-				
+				*/
 				userNameSuffix++;//increase suffix of user name
 
 				break;
+			}
+			case ID_BS_ATTACK:
+			{
+				bs_Message msg;
+
+				RakNet::BitStream bsIn(packet->data, packet->length, false);
+				
+				bsIn >> msg;
+
+				printf("I1: %c  I2: %s", msg.iIndex, std::to_string(msg.jIndex).c_str());
+				break;
+			}
 			case ID_NO_FREE_INCOMING_CONNECTIONS:
 				message = "The server is full.\n";
 				printf(message.c_str());

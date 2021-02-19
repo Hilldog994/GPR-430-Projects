@@ -39,6 +39,10 @@
 #include "RakNet/RakNetTypes.h"
 #include "RakNet/GetTime.h"
 
+#include "gpro-net/gpro-net.h"
+#include "gpro-net/gpro-net-common/gpro-net-console.h"
+#include "gpro-net/gpro-net-common/gpro-net-gamestate.h"
+
 enum GameMessages
 {
 	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1,
@@ -46,8 +50,35 @@ enum GameMessages
 	ID_NAMES_REQUEST,
 	ID_CLOSE_SERVER,
 	ID_PRIVATE_MESSAGE,
-	ID_STORE_NAME
+	ID_STORE_NAME,
+	ID_BS_ATTACK
 };
 
+struct bs_Message
+{
+	char iIndex; // iIndex is A-J
+	int jIndex; // jIndex 1-10
+};
+
+namespace RakNet
+{
+	RakNet::BitStream& operator << (RakNet::BitStream& out, bs_Message& in)
+	{
+		out.Write((RakNet::MessageID)GameMessages::ID_BS_ATTACK);
+		out.Write(in.iIndex);
+		out.Write(in.jIndex);
+		//maybe also write converted index(1,2 writing B3)
+		return out;
+	}
+
+	RakNet::BitStream& operator >> (RakNet::BitStream& in, bs_Message& out)
+	{
+		in.IgnoreBytes(sizeof(RakNet::MessageID));
+		in.Read(out.iIndex);
+		in.Read(out.jIndex);
+		//if writing converted read in
+		return in;
+	}
+}
 
 #endif	// !_GPRO_NET_H_
