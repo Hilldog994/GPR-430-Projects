@@ -24,6 +24,7 @@
 #ifndef _GPRO_NET_GAMESTATE_H_
 #define _GPRO_NET_GAMESTATE_H_
 
+#include <iostream>
 
 #define gpro_flag_raise(value, flag)	(value | flag)	// value with flag raised
 #define gpro_flag_toggle(value, flag)	(value ^ flag)	// value with flag toggled
@@ -38,9 +39,8 @@ extern "C" {
 
 
 typedef unsigned char
-	gpro_battleship[10][10],	// battleship board (one player)
-	gpro_checkers[8][4],		// checkerboard (shared)
-	gpro_mancala[2][8];			// mancala board (shared)
+	gpro_battleship[10][10];	// battleship board (one player)
+
 
 /*
 * BS:
@@ -66,38 +66,6 @@ typedef unsigned char
 			|____|____|____|____|____|____|____|____|____|____|
 		 J	|    |    |    |    |    |    |    |    |    |    |
 			|____|____|____|____|____|____|____|____|____|____|
-	Checkers:
-		[8]
-			 _______________________________________
-		 0	| 0  |    | 1  |    | 2  |    | 3  |    |	[4]
-			|____|____|____|____|____|____|____|____|
-		 1	|    | 0  |    | 1  |    | 2  |    | 3  |
-			|____|____|____|____|____|____|____|____|
-		 2	| 0  |    | 1  |    | 2  |    | 3  |    |
-			|____|____|____|____|____|____|____|____|
-		 3	|    | 0  |    | 1  |    | 2  |    | 3  |
-			|____|____|____|____|____|____|____|____|
-		 4	| 0  |    | 1  |    | 2  |    | 3  |    |
-			|____|____|____|____|____|____|____|____|
-		 5	|    | 0  |    | 1  |    | 2  |    | 3  |
-			|____|____|____|____|____|____|____|____|
-		 6	| 0  |    | 1  |    | 2  |    | 3  |    |
-			|____|____|____|____|____|____|____|____|
-		 7	|    | 0  |    | 1  |    | 2  |    | 3  |
-			|____|____|____|____|____|____|____|____|
-
-
-	Mancala:
-		[2]        ___________________________
-				  /				7			  \
-			 _______________________________________
-		 0	| 0  | 1  | 2  | 3  | 4  | 5  | 6  |    |	[8]
-			|    |____|____|____|____|____|____|    |
-		 1	|    | 6  | 5  | 4  | 3  | 2  | 1  | 0  |
-			|____|____|____|____|____|____|____|____|
-
-				  \___________________________/
-								7
 */
 
 typedef enum gpro_battleship_flag
@@ -117,29 +85,6 @@ typedef enum gpro_battleship_flag
 	gpro_battleship_defend_rec = gpro_battleship_damage | gpro_battleship_ship,	// our records of defense
 } gpro_battleship_flag;
 
-typedef enum gpro_checkers_flag
-{
-	gpro_checkers_open,				// empty space
-	gpro_checkers_player1 = 0x01,	// player 1 piece
-	gpro_checkers_player2 = 0x02,	// player 2 piece
-	gpro_checkers_stack = 0x04,		// stacked pieces
-	gpro_checkers_player1_stack = gpro_checkers_player1 | gpro_checkers_stack,	// player 1 stacked pieces
-	gpro_checkers_player2_stack = gpro_checkers_player2 | gpro_checkers_stack,	// player 2 stacked pieces
-} gpro_checkers_flag;
-
-typedef enum gpro_mancala_index
-{
-	gpro_mancala_score,
-	gpro_mancala_cup1,
-	gpro_mancala_cup2,
-	gpro_mancala_cup3,
-	gpro_mancala_cup4,
-	gpro_mancala_cup5,
-	gpro_mancala_cup6,
-	gpro_mancala_onside,
-} gpro_mancala_index;
-
-
 inline void gpro_battleship_reset(gpro_battleship gs)
 {
 	int* itr = (int*)gs, * const end = itr + sizeof(gpro_battleship) / sizeof(int);
@@ -147,27 +92,54 @@ inline void gpro_battleship_reset(gpro_battleship gs)
 		*(itr++) = 0;
 }
 
-inline void gpro_checkers_reset(gpro_checkers gs)
+//displays battleship board, pass in board and whether or not the board to print is yours(show ships) or enemy's(no ships shown)
+inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 {
-	int* itr = (int*)gs;
-	itr[0] = itr[1] = itr[2] = 0x01010101; // player 1 rows
-	itr[3] = itr[4] = 0x00000000; // empty rows
-	itr[5] = itr[6] = itr[7] = 0x02020202; // player 2 rows
-}
+	gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
+	printf("    ");//spacing for A-J spot
+	for (int i = 1; i < 11; i++)//print 1-10
+	{
+		printf(" %i ", i);
+	}
+	printf("\n");
+	if (!yourBoard)//print enemy board
+	{
+		for (int i = 0; i < 10; i++) //rows(A-J) 
+		{
+			//https://stackoverflow.com/questions/44999629/convert-letters-into-numbers-a-1-b-2-c 'A' + i just increments the character
+			printf(" %c |", 'A'+i);
+			for (int j = 0; j < 10; j++) //columns(1-10)
+			{
+				switch (board[i][j])
+				{
+					case gpro_battleship_flag::gpro_battleship_open:
+					{
+						gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
+						printf("|_|");
+						break;
+					}
+					case gpro_battleship_flag::gpro_battleship_hit:
+					{
+						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						printf("|X|");
+						break;
+					}
+					case gpro_battleship_flag::gpro_battleship_miss:
+					{
+						gpro_consoleSetColor(gpro_consoleColor_white, gpro_consoleColor_b);
+						printf("|O|");
+						break;
+					}
+				}
+			}
+			printf("\n");
+		}
+	}
+	else //print your board with ships, etc.
+	{
 
-inline void gpro_mancala_reset(gpro_mancala gs)
-{
-	long long* itr = (long long*)gs;
-	itr[0] = itr[1] = 0x0004040404040400; // 6 cups, 4 stones each
-	gs[0][7] = gs[1][7] = 24; // on-side total
-}
-inline char* gpro_battleship_display_board(gpro_battleship board, bool shipsVisible)
-{
-	char* result;
+	}
 
-
-
-	return result;
 }
 
 #ifdef __cplusplus

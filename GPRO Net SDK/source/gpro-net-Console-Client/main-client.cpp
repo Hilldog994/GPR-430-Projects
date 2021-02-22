@@ -48,30 +48,35 @@ const int SERVER_PORT = 4024;
 
 int main(int const argc, char const* const argv[])
 {
-	std::string test;
-	std::string displayName;
-	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
-	RakNet::SocketDescriptor sd;
-	RakNet::Packet* packet;
+	//std::string test;
+	//std::string displayName;
+	//RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
+	//RakNet::SocketDescriptor sd;
+	//RakNet::Packet* packet;
 
-	peer->Startup(1, &sd, 1);
+	//peer->Startup(1, &sd, 1);
 
 	//printf("Insert display name.\n");
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
-	peer->Connect("172.16.2.59", SERVER_PORT, 0, 0);
+	gpro_consoleClear();
+	gpro_consoleToggleCursor(true);
+	//create player board and reset it
+	gpro_battleship mBoard;
+	gpro_battleship_reset(mBoard);
+	mBoard[1][3] = gpro_battleship_flag::gpro_battleship_hit;
+	mBoard[2][4] = gpro_battleship_flag::gpro_battleship_miss;
+	gpro_battleship_display_board(mBoard, false);
+
+
+	/*peer->Connect("172.16.2.59", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
 	//RakNet::Time time;
 	bool loop = true;
 
-	gpro_consoleToggleCursor(true);
-	//create player board and reset it
-	gpro_battleship mBoard;
-	gpro_battleship_reset(mBoard);
 
-	bs_Message msg;
 	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -88,6 +93,8 @@ int main(int const argc, char const* const argv[])
 					printf("Another client has connected.\n");
 					break;
 				case ID_CONNECTION_REQUEST_ACCEPTED:
+				{
+					bs_Message msg;
 					printf("Our connection request has been accepted.\n");
 					msg.iIndex = 'A';
 					msg.jIndex = 1;
@@ -99,9 +106,10 @@ int main(int const argc, char const* const argv[])
 					bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
 					bsOut.Write("Hello world");
 					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-					bsOut.Reset();*/
+					bsOut.Reset();
 
 					break;
+				}
 
 				case ID_NEW_INCOMING_CONNECTION:
 					printf("A connection is incoming.\n");
@@ -164,7 +172,7 @@ int main(int const argc, char const* const argv[])
 						bsOut.Write(test.c_str());
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 						bsOut.Reset();
-					}*/
+					}
 					break;
 				}
 				case ID_CHAT_MESSAGE_1: //Receives chat message
@@ -192,9 +200,9 @@ int main(int const argc, char const* const argv[])
 				}
 			}
 		}
-	}
+	}*/
 	//http://www.raknet.net/raknet/manual/detailedimplementation.html for shutting down
-	peer->Shutdown(300);
-	RakNet::RakPeerInterface::DestroyInstance(peer);
+	//peer->Shutdown(300);
+	//RakNet::RakPeerInterface::DestroyInstance(peer);
 	system("pause");
 }
