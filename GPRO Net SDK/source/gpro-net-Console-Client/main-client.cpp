@@ -60,15 +60,30 @@ int main(int const argc, char const* const argv[])
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
+
+	//SP battleship stuff
 	gpro_consoleClear();
 	gpro_consoleToggleCursor(true);
 	//create player board and reset it
 	gpro_battleship mBoard;
 	gpro_battleship_reset(mBoard);
-	mBoard[1][3] = gpro_battleship_flag::gpro_battleship_hit;
-	mBoard[2][4] = gpro_battleship_flag::gpro_battleship_miss;
-	gpro_battleship_display_board(mBoard, false);
+	//
+	mBoard[1][3] += gpro_battleship_flag::gpro_battleship_ship_d3;
+	mBoard[1][3] += gpro_battleship_flag::gpro_battleship_hit;
+	mBoard[1][3] += gpro_battleship_flag::gpro_battleship_damage;
 
+
+	mBoard[0][5] += gpro_battleship_flag::gpro_battleship_hit;
+	mBoard[0][5] += gpro_battleship_flag::gpro_battleship_damage;
+	mBoard[0][5] += gpro_battleship_flag::gpro_battleship_ship_c5;
+
+	mBoard[2][4] += gpro_battleship_flag::gpro_battleship_miss;
+	//mBoard[1][3] = gpro_battleship_flag::gpro_battleship_hit;
+	//mBoard[2][4] = gpro_battleship_flag::gpro_battleship_miss;
+	gpro_battleship_display_board(mBoard, false);
+	//setup battleship board(placement of ships)
+
+	//end of SP battleship stuff
 
 	/*peer->Connect("172.16.2.59", SERVER_PORT, 0, 0);
 

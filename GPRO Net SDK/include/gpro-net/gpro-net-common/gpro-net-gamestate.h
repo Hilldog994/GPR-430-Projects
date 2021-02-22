@@ -93,6 +93,7 @@ inline void gpro_battleship_reset(gpro_battleship gs)
 }
 
 //displays battleship board, pass in board and whether or not the board to print is yours(show ships) or enemy's(no ships shown)
+//Enemy board is on Top, player board is on bottom
 inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 {
 	gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
@@ -110,27 +111,60 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 			printf(" %c |", 'A'+i);
 			for (int j = 0; j < 10; j++) //columns(1-10)
 			{
-				switch (board[i][j])
+				if(gpro_flag_check(board[i][j],gpro_battleship_flag::gpro_battleship_open)) 
 				{
-					case gpro_battleship_flag::gpro_battleship_open:
+					gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
+					printf("|_|");
+						
+				}
+				else if(gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_hit))
+				{
+					if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_p2))//hit patrol ship
 					{
-						gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
-						printf("|_|");
-						break;
+						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						printf("|P|");
 					}
-					case gpro_battleship_flag::gpro_battleship_hit:
+					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_d3))//hit destroyer
+					{
+						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						printf("|D|");
+					}
+					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_s3))//hit submarine
+					{
+						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						printf("|S|");
+					}
+					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_b4))//hit battleship
+					{
+						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						printf("|B|");
+					}
+					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_c5))//hit carrier
+					{
+						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						printf("|C|");
+					}
+					else
 					{
 						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
 						printf("|X|");
-						break;
 					}
-					case gpro_battleship_flag::gpro_battleship_miss:
-					{
-						gpro_consoleSetColor(gpro_consoleColor_white, gpro_consoleColor_b);
-						printf("|O|");
-						break;
-					}
+					
+						
 				}
+				else if(gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_miss))
+				{
+					gpro_consoleSetColor(gpro_consoleColor_white, gpro_consoleColor_b);
+					printf("|O|");
+						
+				}
+				else //if board has ship or something else unique to player board, make it look like an open space
+				{
+					gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
+					printf("|_|");
+						
+				}
+				
 			}
 			printf("\n");
 		}
