@@ -96,7 +96,7 @@ inline void gpro_battleship_reset(gpro_battleship gs)
 //Enemy board is on Top, player board is on bottom
 inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 {
-	gpro_consoleColor bg;
+	gpro_consoleColor bg = gpro_consoleColor_a;
 
 	if (!yourBoard)//print enemy board
 	{
@@ -111,6 +111,7 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 		for (int i = 0; i < 10; i++) //rows(A-J) 
 		{
 			//https://stackoverflow.com/questions/44999629/convert-letters-into-numbers-a-1-b-2-c 'A' + i just increments the character
+			gpro_consoleSetColor(gpro_consoleColor_g, bg);
 			printf(" %c |", 'A'+i);
 			for (int j = 0; j < 10; j++) //columns(1-10)
 			{
@@ -185,6 +186,7 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 		for (int i = 0; i < 10; i++) //rows(A-J) 
 		{
 			//https://stackoverflow.com/questions/44999629/convert-letters-into-numbers-a-1-b-2-c 'A' + i just increments the character
+			gpro_consoleSetColor(gpro_consoleColor_g, bg);
 			printf(" %c |", 'A' + i);
 			for (int j = 0; j < 10; j++) //columns(1-10)
 			{

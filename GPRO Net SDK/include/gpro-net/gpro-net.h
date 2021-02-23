@@ -59,7 +59,7 @@ enum GameMessages
 
 struct bs_Message
 {
-	char iIndex; // iIndex is A-J
+	int iIndex; // iIndex is A-J
 	int jIndex; // jIndex 1-10
 };
 
