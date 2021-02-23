@@ -46,6 +46,253 @@ http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for Rak
 #define IP_ADDRESS = "172.16.2.56"; //dont work
 const int SERVER_PORT = 4024;
 
+void PrintBoards(gpro_battleship board1, gpro_battleship board2, int playerIndex)
+{
+	if (playerIndex == 1)
+	{
+		gpro_consoleResetColor();
+		printf("Player2 Board(enemy)\n");
+		gpro_battleship_display_board(board2, false);
+		gpro_consoleResetColor();
+		printf("Player1 Board(yours)\n");
+		gpro_battleship_display_board(board1, true);
+	}
+	else if (playerIndex == 2)
+	{
+		gpro_consoleResetColor();
+		printf("Player1 Board(enemy)\n");
+		gpro_battleship_display_board(board1, true);
+		gpro_consoleResetColor();
+		printf("Player2 Board(yours)\n");
+		gpro_battleship_display_board(board2, false);
+	}
+}
+
+//takes in input(something like B4) and translates into the correct spot in gpro_battleship, input will be in correct format
+Vec2 ProcessInput(std::string input)
+{
+	char first = input[0];//A-J
+	//stoi converts to int, substr gets 2nd index of string onwards(goes 2 incase of 10)
+	int second = std::stoi(input.substr(1, 2));//1-10
+	//if A, 'A' - A will be 0, 'B' gives 1, etc. number will be one more than index
+	return Vec2(first - 'A', second - 1);
+}
+
+//check if input is within board bounds
+bool IsInputValid(std::string input)
+{
+	//check if input is in correct format, and is within range of board
+	if (input[0] >= 'A' && input[0] <= 'J')
+	{
+		if (std::stoi(input.substr(1, 3)) >= 1 && std::stoi(input.substr(1, 3)) <= 10) //check 3 spaces incase 100 or more is put
+		{
+			return true;
+		}
+	}
+	printf("Invalid Entry, try again\n");
+	return false;
+}
+
+
+bool isSpaceOpen(gpro_battleship& boardToUse, int direction, Vec2 startLocation, int length)
+{
+	if (direction == 0)
+	{
+		if (startLocation.y - length >= 0) //make sure ship would fit if open
+		{
+			for (int i = 1; i < length; i++)
+			{
+				if (gpro_flag_check(boardToUse[startLocation.x][startLocation.y - i], gpro_battleship_flag::gpro_battleship_ship))//check if ship already in spot
+				{
+					printf("Ship will not fit there, try again\n");
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+		{
+			printf("Not enough space for ship, try again\n");
+			return false;
+		}
+	}
+	else if (direction == 1)
+	{
+		if (startLocation.x - length >= 0) //make sure ship would fit if open
+		{
+			for (int i = 1; i < length; i++)
+			{
+				if (gpro_flag_check(boardToUse[startLocation.x - i][startLocation.y], gpro_battleship_flag::gpro_battleship_ship))//check if ship already in spot
+				{
+					printf("Ship will not fit there, try again\n");
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+		{
+			printf("Not enough space for ship, try again\n");
+			return false;
+		}
+	}
+	else if (direction == 2)
+	{
+		if (startLocation.y + length <= 9) //make sure ship would fit if open
+		{
+			for (int i = 1; i < length; i++)
+			{
+				if (gpro_flag_check(boardToUse[startLocation.x][startLocation.y + i], gpro_battleship_flag::gpro_battleship_ship))//check if ship already in spot
+				{
+					printf("Ship will not fit there, try again\n");
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+		{
+			printf("Not enough space for ship, try again\n");
+			return false;
+		}
+	}
+	else if (direction == 3)
+	{
+		if (startLocation.x + length <= 9) //make sure ship would fit if open
+		{
+			for (int i = 1; i < length; i++)
+			{
+				if (gpro_flag_check(boardToUse[startLocation.x+i][startLocation.y], gpro_battleship_flag::gpro_battleship_ship))//check if ship already in spot
+				{
+					printf("Ship will not fit there, try again\n");
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+		{
+			printf("Not enough space for ship, try again\n");
+			return false;
+		}
+	}
+	return false;
+}
+
+//0 is left, 1 is up, 2 is right, 3 is down
+bool CheckAndCreateShip(gpro_battleship& boardToUse, int direction, Vec2 startLocation)
+{
+	switch (boardToUse[startLocation.x][startLocation.y])
+	{
+		case gpro_battleship_flag::gpro_battleship_ship_p2:
+		{
+			if (isSpaceOpen(boardToUse, direction, startLocation, 2))//if space is open for ship
+			{
+				//MAKE ANOTHER FUNCTION FOR POPULATING BOARD WITH GIVEN LENGTH, LIKE ISSPACEOPEN
+				if (direction == 0)
+				{
+					boardToUse[startLocation.x][startLocation.y - 1] += gpro_battleship_flag::gpro_battleship_ship_p2;
+					return true;
+				}
+				if (direction == 1)
+				{
+					boardToUse[startLocation.x - 1][startLocation.y] += gpro_battleship_flag::gpro_battleship_ship_p2;
+					return true;
+				}
+				if (direction == 2)
+				{
+					boardToUse[startLocation.x][startLocation.y + 1] += gpro_battleship_flag::gpro_battleship_ship_p2;
+					return true;
+				}
+				if (direction == 3)
+				{
+					boardToUse[startLocation.x + 1][startLocation.y] += gpro_battleship_flag::gpro_battleship_ship_p2;
+					return true;
+				}
+			}
+			else
+			{
+				return false;
+			}
+
+			break;
+		}
+		case gpro_battleship_flag::gpro_battleship_ship_d3:
+		{
+			return false;
+			break;
+		}
+		case gpro_battleship_flag::gpro_battleship_ship_s3:
+		{
+			return false;
+			break;
+		}
+		case gpro_battleship_flag::gpro_battleship_ship_b4:
+		{
+			return false;
+			break;
+		}
+		case gpro_battleship_flag::gpro_battleship_ship_c5:
+		{
+			return false;
+			break;
+		}
+		default:
+			return false;
+			break;
+	}
+	return false;
+}
+
+void SetupBoard(gpro_battleship& board1, gpro_battleship& board2, int playerIndex)
+{
+	std::string input;
+	bool inputValid = false;
+	gpro_consoleResetColor();
+	printf("Setup Ships Player %i. \n", playerIndex);
+	printf("Enter starting position of patrol ship(size 2)\n");
+	while (!inputValid)
+	{
+		std::getline(std::cin, input); //get input
+		inputValid = IsInputValid(input.c_str());
+	}
+	inputValid = false;
+	Vec2 loc = ProcessInput(input.c_str());
+	if (playerIndex == 1)
+	{
+		board1[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_p2;
+	}
+	else if (playerIndex == 2)
+	{
+		board2[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_p2;
+	}
+	while (!inputValid) //check for direction to put ship, check if valid
+	{
+		printf("Which direction for the rest of the ship? (0=left, 1=up, 2=right, 3=down)\n");
+		std::getline(std::cin, input);
+		if (input.length() == 1)
+		{
+			if (std::stoi(input) >= 0 && std::stoi(input) <= 3) //input is between 0 and 3
+			{
+				if (playerIndex == 1)
+				{
+					inputValid = CheckAndCreateShip(board1, std::stoi(input), loc);
+				}
+				else if (playerIndex == 2)
+				{
+					inputValid = CheckAndCreateShip(board2, std::stoi(input), loc);
+				}
+			}
+			else
+			{
+				printf("Enter a valid direction\n");
+			}
+		}
+	}
+
+
+}
+
 int main(int const argc, char const* const argv[])
 {
 	//std::string test;
@@ -60,29 +307,43 @@ int main(int const argc, char const* const argv[])
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
+//SP battleship stuff
+	//using += lets you have multiple flags on a space
+	/*mBoard2[1][3] += gpro_battleship_flag::gpro_battleship_ship_d3;
+	mBoard2[1][3] += gpro_battleship_flag::gpro_battleship_hit;
+	mBoard2[1][3] += gpro_battleship_flag::gpro_battleship_damage;
 
-	//SP battleship stuff
+
+	mBoard2[0][5] += gpro_battleship_flag::gpro_battleship_ship_c5;
+
+	mBoard2[2][4] += gpro_battleship_flag::gpro_battleship_miss;
+
+	mBoard1[0][1] += gpro_battleship_flag::gpro_battleship_ship_d3;
+	mBoard1[0][1] += gpro_battleship_flag::gpro_battleship_hit;
+	*/
+//Player1 Setup
 	gpro_consoleClear();
 	gpro_consoleToggleCursor(true);
 	//create player board and reset it
-	gpro_battleship mBoard;
-	gpro_battleship_reset(mBoard);
-	//
-	mBoard[1][3] += gpro_battleship_flag::gpro_battleship_ship_d3;
-	mBoard[1][3] += gpro_battleship_flag::gpro_battleship_hit;
-	mBoard[1][3] += gpro_battleship_flag::gpro_battleship_damage;
+	gpro_battleship mBoard1;//player 1 board
+	gpro_battleship mBoard2;//player 2 board
+	gpro_battleship_reset(mBoard1);
+	gpro_battleship_reset(mBoard2);
 
-
-	mBoard[0][5] += gpro_battleship_flag::gpro_battleship_hit;
-	mBoard[0][5] += gpro_battleship_flag::gpro_battleship_damage;
-	mBoard[0][5] += gpro_battleship_flag::gpro_battleship_ship_c5;
-
-	mBoard[2][4] += gpro_battleship_flag::gpro_battleship_miss;
-	//mBoard[1][3] = gpro_battleship_flag::gpro_battleship_hit;
-	//mBoard[2][4] = gpro_battleship_flag::gpro_battleship_miss;
-	gpro_battleship_display_board(mBoard, false);
+	//PrintBoards(mBoard1,mBoard2, 1);
 	//setup battleship board(placement of ships)
+	PrintBoards(mBoard1, mBoard2, 1);
+	SetupBoard(mBoard1, mBoard2, 1);
+	PrintBoards(mBoard1, mBoard2, 1);
 
+	//PrintBoards(mBoard1, mBoard2, 2);
+	//setup battleship board(placement of ships)
+	//SetupBoard(mBoard1, mBoard2, 2);
+
+//Player2 Setup
+
+
+	//attacking will only have to check if it is gpro_battleship_ship
 	//end of SP battleship stuff
 
 	/*peer->Connect("172.16.2.59", SERVER_PORT, 0, 0);

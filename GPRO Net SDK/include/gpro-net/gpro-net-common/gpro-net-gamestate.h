@@ -96,15 +96,18 @@ inline void gpro_battleship_reset(gpro_battleship gs)
 //Enemy board is on Top, player board is on bottom
 inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 {
-	gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
-	printf("    ");//spacing for A-J spot
-	for (int i = 1; i < 11; i++)//print 1-10
-	{
-		printf(" %i ", i);
-	}
-	printf("\n");
+	gpro_consoleColor bg;
+
 	if (!yourBoard)//print enemy board
 	{
+		bg = gpro_consoleColor_b;
+		gpro_consoleSetColor(gpro_consoleColor_g, bg);
+		printf("    ");//spacing for A-J spot
+		for (int i = 1; i < 11; i++)//print 1-10
+		{
+			printf(" %i ", i);
+		}
+		printf("\n");
 		for (int i = 0; i < 10; i++) //rows(A-J) 
 		{
 			//https://stackoverflow.com/questions/44999629/convert-letters-into-numbers-a-1-b-2-c 'A' + i just increments the character
@@ -113,7 +116,7 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 			{
 				if(gpro_flag_check(board[i][j],gpro_battleship_flag::gpro_battleship_open)) 
 				{
-					gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
+					gpro_consoleSetColor(gpro_consoleColor_g, bg);
 					printf("|_|");
 						
 				}
@@ -121,32 +124,32 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 				{
 					if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_p2))//hit patrol ship
 					{
-						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						gpro_consoleSetColor(gpro_consoleColor_r, bg);
 						printf("|P|");
 					}
 					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_d3))//hit destroyer
 					{
-						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						gpro_consoleSetColor(gpro_consoleColor_r, bg);
 						printf("|D|");
 					}
 					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_s3))//hit submarine
 					{
-						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						gpro_consoleSetColor(gpro_consoleColor_r, bg);
 						printf("|S|");
 					}
 					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_b4))//hit battleship
 					{
-						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						gpro_consoleSetColor(gpro_consoleColor_r, bg);
 						printf("|B|");
 					}
 					else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_c5))//hit carrier
 					{
-						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						gpro_consoleSetColor(gpro_consoleColor_r, bg);
 						printf("|C|");
 					}
 					else
 					{
-						gpro_consoleSetColor(gpro_consoleColor_r, gpro_consoleColor_b);
+						gpro_consoleSetColor(gpro_consoleColor_r, bg);
 						printf("|X|");
 					}
 					
@@ -154,13 +157,13 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 				}
 				else if(gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_miss))
 				{
-					gpro_consoleSetColor(gpro_consoleColor_white, gpro_consoleColor_b);
+					gpro_consoleSetColor(gpro_consoleColor_white, bg);
 					printf("|O|");
 						
 				}
 				else //if board has ship or something else unique to player board, make it look like an open space
 				{
-					gpro_consoleSetColor(gpro_consoleColor_g, gpro_consoleColor_b);
+					gpro_consoleSetColor(gpro_consoleColor_g, bg);
 					printf("|_|");
 						
 				}
@@ -171,10 +174,71 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 	}
 	else //print your board with ships, etc.
 	{
+		bg = gpro_consoleColor_blue;
+		gpro_consoleSetColor(gpro_consoleColor_g, bg);
+		printf("    ");//spacing for A-J spot
+		for (int i = 1; i < 11; i++)//print 1-10
+		{
+			printf(" %i ", i);
+		}
+		printf("\n");
+		for (int i = 0; i < 10; i++) //rows(A-J) 
+		{
+			//https://stackoverflow.com/questions/44999629/convert-letters-into-numbers-a-1-b-2-c 'A' + i just increments the character
+			printf(" %c |", 'A' + i);
+			for (int j = 0; j < 10; j++) //columns(1-10)
+			{
+				if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_open))
+				{
+					gpro_consoleSetColor(gpro_consoleColor_g, bg);
+					printf("|_|");
 
+				}
+				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_miss))
+				{
+					gpro_consoleSetColor(gpro_consoleColor_white, bg);
+					printf("|O|");
+
+				}
+				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_p2))//hit patrol ship
+				{
+					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					printf("|P|");
+				}
+				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_d3))//hit patrol ship
+				{
+					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					printf("|D|");
+				}
+				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_s3))//hit patrol ship
+				{
+					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					printf("|S|");
+				}
+				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_b4))//hit patrol ship
+				{
+					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					printf("|B|");
+				}
+				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_c5))//hit patrol ship
+				{
+					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					printf("|C|");
+				}
+				else //if board has ship or something else unique to player board, make it look like an open space
+				{
+					gpro_consoleSetColor(gpro_consoleColor_g, bg);
+					printf("|_|");
+
+				}
+
+			}
+			printf("\n");
+		}
 	}
 
 }
+
 
 #ifdef __cplusplus
 }

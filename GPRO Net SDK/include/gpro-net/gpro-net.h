@@ -43,6 +43,9 @@
 #include "gpro-net/gpro-net-common/gpro-net-console.h"
 #include "gpro-net/gpro-net-common/gpro-net-gamestate.h"
 
+#include <string>
+#include <iostream>
+
 enum GameMessages
 {
 	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1,
@@ -59,6 +62,16 @@ struct bs_Message
 	char iIndex; // iIndex is A-J
 	int jIndex; // jIndex 1-10
 };
+
+struct Vec2
+{
+	Vec2(int xi, int yi) :x(xi), y(yi) {};
+	int x;
+	int y;
+};
+
+
+
 
 namespace RakNet
 {
