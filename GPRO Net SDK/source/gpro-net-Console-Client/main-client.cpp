@@ -43,23 +43,24 @@
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
 */
 
-#define IP_ADDRESS = "172.16.2.56"; //dont work
+#define IP_ADDRESS = "172.16.2.186"; //dont work
 const int SERVER_PORT = 4024;
 
 int main(int const argc, char const* const argv[])
 {
-	//std::string test;
-	//std::string displayName;
-	//RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
-	//RakNet::SocketDescriptor sd;
-	//RakNet::Packet* packet;
+	std::string test;
+	std::string displayName;
+	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
+	RakNet::SocketDescriptor sd;
+	RakNet::Packet* packet;
 
-	//peer->Startup(1, &sd, 1);
+	peer->Startup(1, &sd, 1);
 
 	//printf("Insert display name.\n");
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
+	/*
 //SP battleship stuff
 //----------------------------------------------------------------------------------------------
 //Setup Game
@@ -76,8 +77,8 @@ int main(int const argc, char const* const argv[])
 //setup battleship boards(placement of ships)
 	SetupBoard(mBoard1, mBoard2, 1);
 	//pause for player 2
-	printf("Player 2's turn to place\n");
-	system("pause");
+	//printf("Player 2's turn to place\n");
+	//system("pause");
 //Player 2 setup
 	SetupBoard(mBoard1, mBoard2, 2);
 	//gpro_consoleClear();
@@ -106,11 +107,12 @@ int main(int const argc, char const* const argv[])
 
 //---------------------------------------------------------------------------------------------
 //end of SP battleship stuff
+*/
 
-	/*peer->Connect("172.16.2.59", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.186", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
-	//RakNet::Time time;
+	RakNet::Time time;
 	bool loop = true;
 
 
@@ -131,13 +133,17 @@ int main(int const argc, char const* const argv[])
 					break;
 				case ID_CONNECTION_REQUEST_ACCEPTED:
 				{
-					bs_Message msg;
+					//bs_Message msg;
 					printf("Our connection request has been accepted.\n");
+					
+					/*
 					msg.iIndex = 'A';
 					msg.jIndex = 1;
 					bsOut << msg;
 					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-					/*bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+					*/
+
+					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 					time = RakNet::GetTime();
 					bsOut.Write(time);
 					bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
@@ -168,8 +174,7 @@ int main(int const argc, char const* const argv[])
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					printf("Recieved: %s\n\n", rs.C_String());
-					/*
-					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to privately message them\n");
+					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to challenge them to battleship\n");
 
 					std::getline(std::cin, test); //get input
 
@@ -184,14 +189,14 @@ int main(int const argc, char const* const argv[])
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
 					}
-					else if (test.front() == '(' && test.find(')') != std::string::npos) //Determines if message starts with an opening paranthesis and closes at some point (private message)
+					else if (test.front() == '(' && test.back() == ')') //If in paranthesis
 					{
 						//write timestamp and typed message and send to server
 						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 						time = RakNet::GetTime();
 						bsOut.Write(time);
 
-						bsOut.Write((RakNet::MessageID)ID_PRIVATE_MESSAGE);
+						bsOut.Write((RakNet::MessageID)ID_CHALLENGE);
 						bsOut.Write(test.c_str());
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 						bsOut.Reset();
@@ -230,6 +235,12 @@ int main(int const argc, char const* const argv[])
 					displayName = rs;
 					break;
 				}
+				case ID_RECEIVE_CHALLENGE:
+				{
+					std::string message = "Challenge Received";
+					printf(message.c_str());
+					break;
+				}
 				default:
 				{
 					printf("Message with identifier %i has arrived.\n", packet->data[0]);
@@ -237,9 +248,9 @@ int main(int const argc, char const* const argv[])
 				}
 			}
 		}
-	}*/
+	}
 	//http://www.raknet.net/raknet/manual/detailedimplementation.html for shutting down
-	//peer->Shutdown(300);
-	//RakNet::RakPeerInterface::DestroyInstance(peer);
+	peer->Shutdown(300);
+	RakNet::RakPeerInterface::DestroyInstance(peer);
 	system("pause");
 }

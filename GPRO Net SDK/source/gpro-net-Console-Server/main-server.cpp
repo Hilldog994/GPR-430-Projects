@@ -113,13 +113,12 @@ int main(int const argc, char const* const argv[])
 				printf("User: %s has joined \n", nicknameList[sa].c_str());
 
 
-				/*
 				//send id back to user
 				bsOut.Write((RakNet::MessageID)ID_STORE_NAME);
 				bsOut.Write(nicknameList[sa].c_str());
 				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 				bsOut.Reset();
-				*/
+
 				userNameSuffix++;//increase suffix of user name
 
 				break;
@@ -224,6 +223,94 @@ int main(int const argc, char const* const argv[])
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 						bsOut.Reset();
 						break;
+					}
+					case ID_CHALLENGE:
+					{
+						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+						bsIn.Read(rs); //read message
+
+						std::string text = rs.C_String();
+
+						std::string user;
+						RakNet::SystemAddress sentAddress;
+						//bool addressFound = false;
+
+						bool onMessage = false;
+						bool userExists = false;
+
+						for (int i = 1; i < text.length() - 1; i++)
+						{
+							char c = text.at(i);
+							user += c;
+						}
+
+						//look through nickname list, add each name to the list to send
+						for (iter = nicknameList.begin(); iter != nicknameList.end(); iter++)
+						{
+							if (iter->second == user)
+							{
+								bsOut.Write((RakNet::MessageID)ID_RECEIVE_CHALLENGE);
+								//bsOut.Write(text.c_str());
+								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, iter->first, false);
+								bsOut.Reset();
+								break;
+							}
+						}
+
+						text = nicknameList[packet->systemAddress.ToString()] + ": " + text + " (Public)\n";
+						//send a message back to client
+						printf(text.c_str());
+
+						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+						bsOut.Write(text.c_str());
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+						bsOut.Reset();
+
+						//send a message back to client
+						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+						bsOut.Write("Message Sent");
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+						bsOut.Reset();
+
+						/*
+						if (addressFound) //If users exists sends private message
+						{
+							text = nicknameList[packet->systemAddress.ToString()] + ": " + message + " (Private)\n";
+							printf(text.c_str());
+							output << text;
+
+							//send a message back to client
+							bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+							bsOut.Write(text.c_str());
+							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, sentAddress, false);
+							bsOut.Reset();
+
+							//send a message back to client
+							bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+							bsOut.Write("Message Sent");
+							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+							bsOut.Reset();
+						}
+						else //If not sends as regular message
+						{
+							text = nicknameList[packet->systemAddress.ToString()] + ": " + text + " (Public)\n";
+							//send a message back to client
+							printf(text.c_str());
+							output << text;
+
+							bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+							bsOut.Write(text.c_str());
+							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+							bsOut.Reset();
+
+							//send a message back to client
+							bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+							bsOut.Write("Message Sent");
+							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+							bsOut.Reset();
+						}
+						break;
+						*/
 					}
 					default:
 					{
