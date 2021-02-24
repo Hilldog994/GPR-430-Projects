@@ -40,8 +40,8 @@
 #include "RakNet/GetTime.h"
 
 #include "gpro-net/gpro-net.h"
-#include "gpro-net/gpro-net-common/gpro-net-console.h"
-#include "gpro-net/gpro-net-common/gpro-net-gamestate.h"
+//#include "gpro-net/gpro-net-common/gpro-net-console.h"
+//#include "gpro-net/gpro-net-common/gpro-net-gamestate.h"
 
 #include <string>
 #include <iostream>
@@ -75,7 +75,7 @@ struct Vec2
 
 namespace RakNet
 {
-	RakNet::BitStream& operator << (RakNet::BitStream& out, bs_Message& in)
+	inline RakNet::BitStream& operator << (RakNet::BitStream& out, bs_Message& in)
 	{
 		out.Write((RakNet::MessageID)GameMessages::ID_BS_ATTACK);
 		out.Write(in.iIndex);
@@ -84,7 +84,7 @@ namespace RakNet
 		return out;
 	}
 
-	RakNet::BitStream& operator >> (RakNet::BitStream& in, bs_Message& out)
+	inline RakNet::BitStream& operator >> (RakNet::BitStream& in, bs_Message& out)
 	{
 		in.IgnoreBytes(sizeof(RakNet::MessageID));
 		in.Read(out.iIndex);

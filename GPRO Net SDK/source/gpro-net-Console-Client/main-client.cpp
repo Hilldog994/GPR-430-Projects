@@ -71,24 +71,38 @@ int main(int const argc, char const* const argv[])
 	gpro_battleship_reset(mBoard1);
 	gpro_battleship_reset(mBoard2);
 
-	Battleship battleship;
+	//Battleship battleship;
 
-	//setup battleship boards(placement of ships)
-	battleship.SetupBoard(mBoard1, mBoard2, 1);
+//setup battleship boards(placement of ships)
+	SetupBoard(mBoard1, mBoard2, 1);
 	//pause for player 2
 	printf("Player 2's turn to place\n");
 	system("pause");
-	//Player 2 setup
-	battleship.SetupBoard(mBoard1, mBoard2, 2);
-	gpro_consoleClear();
-	gpro_consoleResetColor();
+//Player 2 setup
+	SetupBoard(mBoard1, mBoard2, 2);
+	//gpro_consoleClear();
+	//gpro_consoleResetColor();
 	
-	battleship.PrintBoards(mBoard1, mBoard2, 3);
-	gpro_consoleClear();
-	gpro_consoleResetColor();
+	//PrintBoards(mBoard1, mBoard2, 3);
+	//gpro_consoleClear();
+	//gpro_consoleResetColor();
 	
+//actual game
+	bool loopGame = true;
+	while (loopGame)
+	{
+		printf("Player 1's turn to attack\n");
+		system("pause");
+		AttackPhase(mBoard1, mBoard2, 1);
 
-	//attacking will only have to check if it is gpro_battleship_ship
+		printf("Player 2's turn to attack\n");
+		system("pause");
+
+		gpro_consoleClear();
+		gpro_consoleResetColor();
+		AttackPhase(mBoard1, mBoard2, 2);
+	}
+
 
 //---------------------------------------------------------------------------------------------
 //end of SP battleship stuff

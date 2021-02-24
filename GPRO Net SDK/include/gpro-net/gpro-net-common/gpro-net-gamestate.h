@@ -176,6 +176,7 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 	else //print your board with ships, etc.
 	{
 		bg = gpro_consoleColor_blue;
+		gpro_consoleColor colorOfShips = gpro_consoleColor_grey;
 		gpro_consoleSetColor(gpro_consoleColor_g, bg);
 		printf("    ");//spacing for A-J spot
 		for (int i = 1; i < 11; i++)//print 1-10
@@ -190,6 +191,14 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 			printf(" %c |", 'A' + i);
 			for (int j = 0; j < 10; j++) //columns(1-10)
 			{
+				if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_hit))//if hit change color of ship to red to indicate
+				{
+					colorOfShips = gpro_consoleColor_r;
+				}
+				else //if not been hit, display normally
+				{
+					colorOfShips = gpro_consoleColor_grey;
+				}
 				if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_open))
 				{
 					gpro_consoleSetColor(gpro_consoleColor_g, bg);
@@ -204,30 +213,30 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 				}
 				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_p2))//hit patrol ship
 				{
-					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					gpro_consoleSetColor(colorOfShips, bg);
 					printf("|P|");
 				}
 				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_d3))//hit patrol ship
 				{
-					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					gpro_consoleSetColor(colorOfShips, bg);
 					printf("|D|");
 				}
 				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_s3))//hit patrol ship
 				{
-					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					gpro_consoleSetColor(colorOfShips, bg);
 					printf("|S|");
 				}
 				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_b4))//hit patrol ship
 				{
-					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					gpro_consoleSetColor(colorOfShips, bg);
 					printf("|B|");
 				}
 				else if (gpro_flag_check(board[i][j], gpro_battleship_flag::gpro_battleship_ship_c5))//hit patrol ship
 				{
-					gpro_consoleSetColor(gpro_consoleColor_grey, bg);
+					gpro_consoleSetColor(colorOfShips, bg);
 					printf("|C|");
 				}
-				else //if board has ship or something else unique to player board, make it look like an open space
+				else //if board has anything else, just display as open
 				{
 					gpro_consoleSetColor(gpro_consoleColor_g, bg);
 					printf("|_|");
