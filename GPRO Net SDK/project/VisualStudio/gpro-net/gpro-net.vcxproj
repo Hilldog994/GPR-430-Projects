@@ -175,6 +175,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\gpro-net\gpro-net-common\battleship.h" />
     <ClInclude Include="..\..\..\include\gpro-net\gpro-net-common\gpro-net-console.h" />
     <ClInclude Include="..\..\..\include\gpro-net\gpro-net-common\gpro-net-gamestate.h" />
     <ClInclude Include="..\..\..\include\gpro-net\gpro-net.h" />
@@ -182,6 +183,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\source\gpro-net\gpro-net-common\gpro-net-console_win.c" />
     <ClCompile Include="..\..\..\source\gpro-net\gpro-net.cpp" />
+    <ClCompile Include="battleship.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
