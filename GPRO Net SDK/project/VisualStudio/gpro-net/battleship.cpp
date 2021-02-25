@@ -45,16 +45,20 @@ Vec2 ProcessInput(std::string input)
 //check if input is within board bounds
 bool IsInputValid(std::string input)
 {
-	//check if input is in correct format, and is within range of board
-	if (input[0] >= 'A' && input[0] <= 'J')
+	if (input.length() >= 2)
 	{
-		if (std::stoi(input.substr(1, 3)) >= 1 && std::stoi(input.substr(1, 3)) <= 10) //check 3 spaces incase 100 or more is put
+		//check if input is in correct format, and is within range of board
+		if (input[0] >= 'A' && input[0] <= 'J')
 		{
-			return true;
+			if (std::stoi(input.substr(1, 3)) >= 1 && std::stoi(input.substr(1, 3)) <= 10) //check 3 spaces incase 100 or more is put
+			{
+				return true;
+			}
 		}
 	}
 	printf("Invalid Entry, try again\n");
 	return false;
+
 }
 
 
@@ -284,11 +288,11 @@ void SetupShip(gpro_battleship& board1, gpro_battleship& board2, int playerIndex
 	{
 		if (playerIndex == 1)
 		{
-			board1[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_p2;
+			board1[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_p2;
 		}
 		else if (playerIndex == 2)
 		{
-			board2[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_p2;
+			board2[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_p2;
 		}
 		break;
 	}
@@ -296,11 +300,11 @@ void SetupShip(gpro_battleship& board1, gpro_battleship& board2, int playerIndex
 	{
 		if (playerIndex == 1)
 		{
-			board1[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_d3;
+			board1[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_d3;
 		}
 		else if (playerIndex == 2)
 		{
-			board2[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_d3;
+			board2[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_d3;
 		}
 		break;
 	}
@@ -308,11 +312,11 @@ void SetupShip(gpro_battleship& board1, gpro_battleship& board2, int playerIndex
 	{
 		if (playerIndex == 1)
 		{
-			board1[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_s3;
+			board1[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_s3;
 		}
 		else if (playerIndex == 2)
 		{
-			board2[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_s3;
+			board2[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_s3;
 		}
 		break;
 	}
@@ -320,11 +324,11 @@ void SetupShip(gpro_battleship& board1, gpro_battleship& board2, int playerIndex
 	{
 		if (playerIndex == 1)
 		{
-			board1[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_b4;
+			board1[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_b4;
 		}
 		else if (playerIndex == 2)
 		{
-			board2[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_b4;
+			board2[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_b4;
 		}
 		break;
 	}
@@ -332,11 +336,11 @@ void SetupShip(gpro_battleship& board1, gpro_battleship& board2, int playerIndex
 	{
 		if (playerIndex == 1)
 		{
-			board1[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_c5;
+			board1[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_c5;
 		}
 		else if (playerIndex == 2)
 		{
-			board2[loc.x][loc.y] += gpro_battleship_flag::gpro_battleship_ship_c5;
+			board2[loc.x][loc.y] = gpro_battleship_flag::gpro_battleship_ship_c5;
 		}
 		break;
 	}
@@ -385,10 +389,11 @@ void SetupBoard(gpro_battleship& board1, gpro_battleship& board2, int playerInde
 	//Ship 1
 	printf("Enter starting position of patrol ship(size 2)\n");
 	SetupShip(board1, board2, playerIndex, gpro_battleship_ship_p2);
-	/*
+	
 	//Ship2
 	printf("Enter starting position of submarine ship(size 3)\n");
 	SetupShip(board1, board2, playerIndex, gpro_battleship_ship_s3);
+	
 	//Ship 3
 	printf("Enter starting position of destroyer ship(size 3)\n");
 	SetupShip(board1, board2, playerIndex, gpro_battleship_ship_d3);
@@ -398,12 +403,12 @@ void SetupBoard(gpro_battleship& board1, gpro_battleship& board2, int playerInde
 	//Ship5
 	printf("Enter starting position of carrier ship(size 5)\n");
 	SetupShip(board1, board2, playerIndex, gpro_battleship_ship_c5);
-	*/
+	
 }
 
 
-//Do the attack phase for the player
-void AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerIndex)
+//Do the attack phase for the player, return if game over
+bool AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerIndex)
 {
 	gpro_consoleClear();
 	gpro_consoleResetColor();
@@ -422,7 +427,7 @@ void AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerInd
 		{
 			loc = ProcessInput(input.c_str());
 			//only valid if space not already attacked
-			inputValid = (!gpro_flag_check(board2[loc.x][loc.y], gpro_battleship_hit) && !gpro_flag_check(board1[loc.x][loc.y], gpro_battleship_miss));
+			inputValid = (!gpro_flag_check(board2[loc.x][loc.y], gpro_battleship_hit) && !gpro_flag_check(board2[loc.x][loc.y], gpro_battleship_miss));
 		}
 		else if (playerIndex == 2 && inputValid)
 		{
@@ -438,6 +443,13 @@ void AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerInd
 		{
 			board2[loc.x][loc.y] += gpro_battleship_hit; //add a hit to board
 			printf("Ship hit!\n");
+			CheckShipDestroyed(board2, loc);
+			if (CheckGameOver(board2))
+			{
+				printf("Player 1 Wins!!\n");
+				return true;
+			}
+
 		}
 		else
 		{
@@ -451,6 +463,12 @@ void AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerInd
 		{
 			board1[loc.x][loc.y] += gpro_battleship_hit; //add a hit to board
 			printf("Ship hit!\n");
+			CheckShipDestroyed(board1, loc);
+			if (CheckGameOver(board1))
+			{
+				printf("Player 2 Wins!!\n");
+				return true;
+			}
 		}
 		else
 		{
@@ -458,6 +476,65 @@ void AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerInd
 			printf("Missed!\n");
 		}
 	}
+	return false;
+}
+
+bool CheckShipDestroyed(gpro_battleship& boardAttacked, Vec2 attackedSpot)
+{
+		if(gpro_flag_check(boardAttacked[attackedSpot.x][attackedSpot.y], gpro_battleship_flag::gpro_battleship_ship_p2))
+		{
+			if (!IsShipAliveOnBoard(boardAttacked, gpro_battleship_flag::gpro_battleship_ship_p2))
+			{
+				printf("Patrol Ship Destroyed! \n");
+				return true;
+			}
+			
+		}
+		if(gpro_flag_check(boardAttacked[attackedSpot.x][attackedSpot.y], gpro_battleship_flag::gpro_battleship_ship_d3))
+		{
+			if (!IsShipAliveOnBoard(boardAttacked, gpro_battleship_flag::gpro_battleship_ship_d3))
+			{
+				printf("Destroyer Ship Destroyed! \n");
+				return true;
+			}
+			
+		}
+		if (gpro_flag_check(boardAttacked[attackedSpot.x][attackedSpot.y], gpro_battleship_flag::gpro_battleship_ship_s3))
+		{
+			if (!IsShipAliveOnBoard(boardAttacked, gpro_battleship_flag::gpro_battleship_ship_s3))
+			{
+				printf("Submarine Ship Destroyed! \n");
+				return true;
+			}
+			
+		}
+		if (gpro_flag_check(boardAttacked[attackedSpot.x][attackedSpot.y], gpro_battleship_flag::gpro_battleship_ship_b4))
+		{
+			if (!IsShipAliveOnBoard(boardAttacked, gpro_battleship_flag::gpro_battleship_ship_b4))
+			{
+				printf("Battleship Ship Destroyed! \n");
+				return true;
+			}
+			
+		}
+		if (gpro_flag_check(boardAttacked[attackedSpot.x][attackedSpot.y], gpro_battleship_flag::gpro_battleship_ship_c5))
+		{
+			if (!IsShipAliveOnBoard(boardAttacked, gpro_battleship_flag::gpro_battleship_ship_c5))
+			{
+				printf("Carrier Ship Destroyed! \n");
+				return true;
+			}
+			
+		}
+
+	
+	return false;
+}
+
+
+bool CheckGameOver(gpro_battleship& boardAttacked)
+{
+	return !IsShipAliveOnBoard(boardAttacked, gpro_battleship_ship);
 }
 
 

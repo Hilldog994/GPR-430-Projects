@@ -249,7 +249,21 @@ inline void gpro_battleship_display_board(gpro_battleship board, bool yourBoard)
 	}
 
 }
-
+//check if there is any non-attacked spot in the board with the given ship type
+inline bool IsShipAliveOnBoard(gpro_battleship& boardAttacked, gpro_battleship_flag shipType)
+{
+	for (int i = 0; i < 10; i++) //rows(A-J) 
+	{
+		for (int j = 0; j < 10; j++) //columns(1-10)
+		{
+			if (gpro_flag_check(boardAttacked[i][j], shipType) && !gpro_flag_check(boardAttacked[i][j], gpro_battleship_hit))
+			{
+				return true;//open ship space was found
+			}
+		}
+	}
+	return false; //if not attacked ship was not found on board, ship is destroyed
+}
 
 #ifdef __cplusplus
 }

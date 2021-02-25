@@ -52,7 +52,7 @@ int main(int const argc, char const* const argv[])
 	std::string displayName;
 	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
 	RakNet::SocketDescriptor sd;
-	RakNet::Packet* packet;
+	//RakNet::Packet* packet;
 
 	peer->Startup(1, &sd, 1);
 
@@ -60,7 +60,7 @@ int main(int const argc, char const* const argv[])
 	//std::getline(std::cin, displayName);
 
 	printf("Starting client... \n");
-	/*
+
 //SP battleship stuff
 //----------------------------------------------------------------------------------------------
 //Setup Game
@@ -77,8 +77,8 @@ int main(int const argc, char const* const argv[])
 //setup battleship boards(placement of ships)
 	SetupBoard(mBoard1, mBoard2, 1);
 	//pause for player 2
-	//printf("Player 2's turn to place\n");
-	//system("pause");
+	printf("Player 2's turn to place\n");
+	system("pause");
 //Player 2 setup
 	SetupBoard(mBoard1, mBoard2, 2);
 	//gpro_consoleClear();
@@ -94,21 +94,29 @@ int main(int const argc, char const* const argv[])
 	{
 		printf("Player 1's turn to attack\n");
 		system("pause");
-		AttackPhase(mBoard1, mBoard2, 1);
+		if (AttackPhase(mBoard1, mBoard2, 1))
+		{
+			loopGame = false;
+			continue;
+		}
 
 		printf("Player 2's turn to attack\n");
 		system("pause");
 
 		gpro_consoleClear();
 		gpro_consoleResetColor();
-		AttackPhase(mBoard1, mBoard2, 2);
+		if (AttackPhase(mBoard1, mBoard2, 2))
+		{
+			loopGame = false;
+			continue;
+		}
 	}
 
 
 //---------------------------------------------------------------------------------------------
 //end of SP battleship stuff
-*/
 
+/*
 	peer->Connect("172.16.2.186", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
@@ -136,12 +144,12 @@ int main(int const argc, char const* const argv[])
 					//bs_Message msg;
 					printf("Our connection request has been accepted.\n");
 					
-					/*
-					msg.iIndex = 'A';
-					msg.jIndex = 1;
-					bsOut << msg;
-					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-					*/
+					
+					//msg.iIndex = 'A';
+					//msg.jIndex = 1;
+					//bsOut << msg;
+					//peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+					
 
 					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 					time = RakNet::GetTime();
@@ -251,6 +259,8 @@ int main(int const argc, char const* const argv[])
 	}
 	//http://www.raknet.net/raknet/manual/detailedimplementation.html for shutting down
 	peer->Shutdown(300);
+	
 	RakNet::RakPeerInterface::DestroyInstance(peer);
+	*/
 	system("pause");
 }

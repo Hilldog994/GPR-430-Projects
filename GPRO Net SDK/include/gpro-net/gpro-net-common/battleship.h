@@ -37,8 +37,12 @@ void SetupShip(gpro_battleship& board1, gpro_battleship& board2, int playerIndex
 void SetupBoard(gpro_battleship& board1, gpro_battleship& board2, int playerIndex);
 
 
-//Do the attack phase for the player
-void AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerIndex);
-		
-		
+//Do the attack phase for the player, return true if game over
+bool AttackPhase(gpro_battleship& board1, gpro_battleship& board2, int playerIndex);
+
+//checks if last move got rid of a whole ship, get ship type at spot and see if there is any open ones left
+bool CheckShipDestroyed(gpro_battleship& boardAttacked, Vec2 attackedSpot);
+
+//check if any ships are left on the board that was attacked
+bool CheckGameOver(gpro_battleship& boardAttacked);
 
