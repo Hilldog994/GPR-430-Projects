@@ -43,7 +43,7 @@
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
 */
 
-#define IP_ADDRESS = "172.16.2.186"; //dont work
+#define IP_ADDRESS = "172.16.2.56"; //dont work
 const int SERVER_PORT = 4024;
 
 int main(int const argc, char const* const argv[])
@@ -52,7 +52,7 @@ int main(int const argc, char const* const argv[])
 	std::string displayName;
 	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
 	RakNet::SocketDescriptor sd;
-	//RakNet::Packet* packet;
+	RakNet::Packet* packet;
 
 	peer->Startup(1, &sd, 1);
 
@@ -61,6 +61,7 @@ int main(int const argc, char const* const argv[])
 
 	printf("Starting client... \n");
 
+	/*
 //SP battleship stuff
 //----------------------------------------------------------------------------------------------
 //Setup Game
@@ -115,9 +116,9 @@ int main(int const argc, char const* const argv[])
 
 //---------------------------------------------------------------------------------------------
 //end of SP battleship stuff
+*/
 
-/*
-	peer->Connect("172.16.2.186", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.56", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
 	RakNet::Time time;
@@ -182,7 +183,7 @@ int main(int const argc, char const* const argv[])
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					printf("Recieved: %s\n\n", rs.C_String());
-					printf("Type your message(type /quit to exit | /names to get a list of connected users | put a users name in paranthesis to challenge them to battleship\n");
+					printf("Choose Room to Join or Enter Chat Message\nR1\nR2\n/quit to quit\n");
 
 					std::getline(std::cin, test); //get input
 
@@ -191,20 +192,26 @@ int main(int const argc, char const* const argv[])
 					{
 						loop = false;
 					}
-					else if (test == "/names") //sends message to get names from server
+					else if (test == "R1") //If Room 1
 					{
-						bsOut.Write((RakNet::MessageID)ID_NAMES_REQUEST);
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-						bsOut.Reset();
-					}
-					else if (test.front() == '(' && test.back() == ')') //If in paranthesis
-					{
-						//write timestamp and typed message and send to server
+						//Sends message to join room 1
 						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
 						time = RakNet::GetTime();
 						bsOut.Write(time);
 
-						bsOut.Write((RakNet::MessageID)ID_CHALLENGE);
+						bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
+						bsOut.Write(test.c_str());
+						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+						bsOut.Reset();
+					}
+					else if (test == "R2") //If Room 2
+					{
+						//Sends message to join room 2
+						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+						time = RakNet::GetTime();
+						bsOut.Write(time);
+
+						bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
 						bsOut.Write(test.c_str());
 						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 						bsOut.Reset();
@@ -243,11 +250,23 @@ int main(int const argc, char const* const argv[])
 					displayName = rs;
 					break;
 				}
-				case ID_RECEIVE_CHALLENGE:
+				case ID_JOIN_ROOM:
 				{
-					std::string message = "Challenge Received";
-					printf(message.c_str());
+					//joins game room and awaits new player
+					RakNet::RakString rs;
+					RakNet::BitStream bsIn(packet->data, packet->length, false);
+					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
+					bsIn.Read(rs);
+					printf("%s\n", rs.C_String());
+
+					printf("Awaiting another player...\n");
+
 					break;
+				}
+				case ID_START_GAME:
+				{
+					//Starts game (stub)
+					printf("Starting game...\n");
 				}
 				default:
 				{
@@ -261,6 +280,5 @@ int main(int const argc, char const* const argv[])
 	peer->Shutdown(300);
 	
 	RakNet::RakPeerInterface::DestroyInstance(peer);
-	*/
 	system("pause");
 }

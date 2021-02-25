@@ -49,6 +49,9 @@ http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for Rak
 int main(int const argc, char const* const argv[])
 {
 	bool loop = true;
+
+	GameRoom room1;
+	GameRoom room2;
 	
 	//output.clear(); //clear log to be only current log saved to file
 	//first key is the address gotten from packet->systemAddress.ToString(), second is the nickname
@@ -224,93 +227,68 @@ int main(int const argc, char const* const argv[])
 						bsOut.Reset();
 						break;
 					}
-					case ID_CHALLENGE:
+					case ID_JOIN_ROOM:
 					{
 						bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
-						bsIn.Read(rs); //read message
+						bsIn.Read(rs);
 
-						std::string text = rs.C_String();
-
-						std::string user;
-						RakNet::SystemAddress sentAddress;
-						//bool addressFound = false;
-
-						bool onMessage = false;
-						bool userExists = false;
-
-						for (int i = 1; i < text.length() - 1; i++)
+						if (rs == "R1") //If first room
 						{
-							char c = text.at(i);
-							user += c;
-						}
-
-						//look through nickname list, add each name to the list to send
-						for (iter = nicknameList.begin(); iter != nicknameList.end(); iter++)
-						{
-							if (iter->second == user)
+							if (room1.hasPlayer1 == false) //If first player open joins as player
 							{
-								bsOut.Write((RakNet::MessageID)ID_RECEIVE_CHALLENGE);
-								//bsOut.Write(text.c_str());
-								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, iter->first, false);
+								room1.player1 = packet->systemAddress;
+								room1.hasPlayer1 = true;
+								printf("Room 1, Player 1 Filled\n");
+
+								//confirm join request
+								bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
+								bsOut.Write("Joined Room 1 as Player 1\n");
+								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 								bsOut.Reset();
-								break;
 							}
+							else if (room1.hasPlayer2 == false) //If second player open joins as player
+							{
+								room1.player2 = packet->systemAddress;
+								room1.hasPlayer2 = true;
+								printf("Room 1, Player 2 Filled\n");
+
+								//confirm join request
+								bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
+								bsOut.Write("Joined Room 1 as Player 2\n");
+								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+								bsOut.Reset();
+							}
+							else
+							{
+								//Join as spectator
+							}
+							
+								
+							if (room1.hasPlayer1 && room1.hasPlayer2) //If both players starts game
+							{
+								printf("Room 1 Game is Ready to Start\n");
+
+								bsOut.Write((RakNet::MessageID)ID_START_GAME);
+								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, room1.player1, false);
+								bsOut.Reset();
+
+								bsOut.Write((RakNet::MessageID)ID_START_GAME);
+								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, room1.player2, false);
+								bsOut.Reset();
+							}
+							/*
+							else 
+							{
+								printf("Room 1 Needs Another Player\n");
+							}
+							*/
 						}
-
-						text = nicknameList[packet->systemAddress.ToString()] + ": " + text + " (Public)\n";
-						//send a message back to client
-						printf(text.c_str());
-
-						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-						bsOut.Write(text.c_str());
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-						bsOut.Reset();
-
-						//send a message back to client
-						bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-						bsOut.Write("Message Sent");
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-						bsOut.Reset();
-
-						/*
-						if (addressFound) //If users exists sends private message
+						else if (rs == "R2")
 						{
-							text = nicknameList[packet->systemAddress.ToString()] + ": " + message + " (Private)\n";
-							printf(text.c_str());
-							output << text;
-
-							//send a message back to client
-							bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-							bsOut.Write(text.c_str());
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, sentAddress, false);
-							bsOut.Reset();
-
-							//send a message back to client
-							bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-							bsOut.Write("Message Sent");
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-							bsOut.Reset();
+							printf("Joining Room 2\n");
 						}
-						else //If not sends as regular message
-						{
-							text = nicknameList[packet->systemAddress.ToString()] + ": " + text + " (Public)\n";
-							//send a message back to client
-							printf(text.c_str());
-							output << text;
 
-							bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-							bsOut.Write(text.c_str());
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-							bsOut.Reset();
-
-							//send a message back to client
-							bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-							bsOut.Write("Message Sent");
-							peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-							bsOut.Reset();
-						}
 						break;
-						*/
 					}
 					default:
 					{

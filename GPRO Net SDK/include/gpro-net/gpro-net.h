@@ -55,8 +55,8 @@ enum GameMessages
 	ID_PRIVATE_MESSAGE,
 	ID_STORE_NAME,
 	ID_BS_ATTACK,
-	ID_CHALLENGE,
-	ID_RECEIVE_CHALLENGE
+	ID_JOIN_ROOM,
+	ID_START_GAME
 };
 
 struct bs_Message
@@ -70,6 +70,18 @@ struct Vec2
 	Vec2(int xi, int yi) :x(xi), y(yi) {};
 	int x;
 	int y;
+};
+
+struct GameRoom
+{
+	//Players
+	RakNet::SystemAddress player1;
+	RakNet::SystemAddress player2;
+
+	//Determines if has player (can't check if system address is null)
+	bool hasPlayer1 = false;
+	bool hasPlayer2 = false;
+	//RakNet::SystemAddress spectators[];
 };
 
 
