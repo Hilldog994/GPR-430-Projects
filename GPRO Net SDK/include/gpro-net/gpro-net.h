@@ -72,18 +72,6 @@ struct Vec2
 	int y;
 };
 
-struct GameRoom
-{
-	//Players
-	RakNet::SystemAddress player1;
-	RakNet::SystemAddress player2;
-
-	//Determines if has player (can't check if system address is null)
-	bool hasPlayer1 = false;
-	bool hasPlayer2 = false;
-	//RakNet::SystemAddress spectators[];
-};
-
 
 
 

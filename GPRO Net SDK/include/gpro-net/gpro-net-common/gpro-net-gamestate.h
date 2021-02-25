@@ -85,6 +85,21 @@ typedef enum gpro_battleship_flag
 	gpro_battleship_defend_rec = gpro_battleship_damage | gpro_battleship_ship,	// our records of defense
 } gpro_battleship_flag;
 
+
+struct GameRoom
+{
+	//Players
+	RakNet::SystemAddress player1;
+	RakNet::SystemAddress player2;
+
+	//Determines if has player (can't check if system address is null)
+	bool hasPlayer1 = false;
+	bool hasPlayer2 = false;
+	//RakNet::SystemAddress spectators[];
+	gpro_battleship board1; //player1 board
+	gpro_battleship board2; //player2 board
+};
+
 inline void gpro_battleship_reset(gpro_battleship gs)
 {
 	int* itr = (int*)gs, * const end = itr + sizeof(gpro_battleship) / sizeof(int);

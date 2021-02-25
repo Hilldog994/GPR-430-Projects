@@ -29,7 +29,7 @@
  Purpose:               Handles server operations
 */
 
-#include "gpro-net/gpro-net.h"
+#include "gpro-net/gpro-net-common/battleship.h"
 
 #include <stdio.h>
 #include <stdlib.h>

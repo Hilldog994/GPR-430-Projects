@@ -61,7 +61,7 @@ int main(int const argc, char const* const argv[])
 
 	printf("Starting client... \n");
 
-	/*
+/*
 //SP battleship stuff
 //----------------------------------------------------------------------------------------------
 //Setup Game
@@ -118,13 +118,15 @@ int main(int const argc, char const* const argv[])
 //end of SP battleship stuff
 */
 
-	peer->Connect("172.16.2.56", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.63", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
 	RakNet::Time time;
 	bool loop = true;
+	bool connectedToServer = false; //in the server lobby, not in a room
+	bool connectedToGame = false; //changes prompts/key interactions to be relevant to game
 
-
+	RakNet::SystemAddress serverAdd;
 	while (loop)
 	{
 		for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
@@ -144,8 +146,8 @@ int main(int const argc, char const* const argv[])
 				{
 					//bs_Message msg;
 					printf("Our connection request has been accepted.\n");
-					
-					
+					serverAdd = packet->systemAddress;
+					connectedToServer = true;
 					//msg.iIndex = 'A';
 					//msg.jIndex = 1;
 					//bsOut << msg;
@@ -183,53 +185,7 @@ int main(int const argc, char const* const argv[])
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
 					printf("Recieved: %s\n\n", rs.C_String());
-					printf("Choose Room to Join or Enter Chat Message\nR1\nR2\n/quit to quit\n");
-
-					std::getline(std::cin, test); //get input
-
-					//Determines if text is message or command
-					if (test == "/quit") //If quitting cancels the loop
-					{
-						loop = false;
-					}
-					else if (test == "R1") //If Room 1
-					{
-						//Sends message to join room 1
-						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
-						time = RakNet::GetTime();
-						bsOut.Write(time);
-
-						bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
-						bsOut.Write(test.c_str());
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-						bsOut.Reset();
-					}
-					else if (test == "R2") //If Room 2
-					{
-						//Sends message to join room 2
-						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
-						time = RakNet::GetTime();
-						bsOut.Write(time);
-
-						bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
-						bsOut.Write(test.c_str());
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-						bsOut.Reset();
-					}
-					else //If none of those commands is a regular message
-					{
-						test = displayName + ": " + test + " (Public)";
-
-						//write timestamp and typed message and send to server
-						bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
-						time = RakNet::GetTime();
-						bsOut.Write(time);
-						
-						bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
-						bsOut.Write(test.c_str());
-						peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-						bsOut.Reset();
-					}
+					
 					break;
 				}
 				case ID_CHAT_MESSAGE_1: //Receives chat message
@@ -261,17 +217,85 @@ int main(int const argc, char const* const argv[])
 
 					printf("Awaiting another player...\n");
 
+					connectedToServer = false;//get rid of server joining prompts
+					
 					break;
 				}
 				case ID_START_GAME:
 				{
 					//Starts game (stub)
 					printf("Starting game...\n");
+					connectedToGame = true;
 				}
 				default:
 				{
 					printf("Message with identifier %i has arrived.\n", packet->data[0]);
 					break;
+				}
+			}
+		}
+		if (connectedToGame)
+		{
+			if (GetAsyncKeyState(VK_CONTROL))//if control key is pressed, do chat message
+			{
+				printf("Chat\n");
+			}
+			else if (GetAsyncKeyState(VK_MENU))//if alt key is pressed, do a battleship related event
+			{
+				printf("Battleship\n");
+
+			}
+		}
+		else if (connectedToServer)
+		{
+			if (GetAsyncKeyState(VK_CONTROL))//if control key is pressed, do message
+			{
+				printf("Choose Room to Join or Enter Chat Message\nR1\nR2\n/quit to quit\n");
+
+				std::getline(std::cin, test); //get input
+
+				//Determines if text is message or command
+				if (test == "/quit") //If quitting cancels the loop
+				{
+					loop = false;
+				}
+				else if (test == "R1") //If Room 1
+				{
+					//Sends message to join room 1
+					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+					time = RakNet::GetTime();
+					bsOut.Write(time);
+
+					bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
+					bsOut.Write(test.c_str());
+					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+					bsOut.Reset();
+				}
+				else if (test == "R2") //If Room 2
+				{
+					//Sends message to join room 2
+					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+					time = RakNet::GetTime();
+					bsOut.Write(time);
+
+					bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
+					bsOut.Write(test.c_str());
+					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+					bsOut.Reset();
+				}
+				else //If none of those commands is a regular message
+				{
+					test = displayName + ": " + test + " (Public)";
+
+					//write timestamp and typed message and send to server
+					bsOut.Write((RakNet::MessageID)ID_TIMESTAMP);
+					time = RakNet::GetTime();
+					bsOut.Write(time);
+
+					bsOut.Write((RakNet::MessageID)ID_CHAT_MESSAGE_1);
+					bsOut.Write(test.c_str());
+					peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
+					bsOut.Reset();
 				}
 			}
 		}
