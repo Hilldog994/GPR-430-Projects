@@ -242,7 +242,8 @@ int main(int const argc, char const* const argv[])
 
 								//confirm join request
 								bsOut.Write((RakNet::MessageID)ID_JOIN_ROOM);
-								bsOut.Write("Joined Room 1 as Player 1\n");
+								//bsOut.Write("Joined Room 1 as Player 1\n");
+								bsOut.Write("11");
 								peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 								bsOut.Reset();
 							}

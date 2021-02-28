@@ -43,7 +43,7 @@
 http://www.jenkinssoftware.com/raknet/manual/tutorial.html tutorial used for RakNet, tutorial code samples were used
 */
 
-#define IP_ADDRESS = "172.16.2.56"; //dont work
+#define IP_ADDRESS = "172.16.2.60"; //dont work
 const int SERVER_PORT = 4024;
 
 int main(int const argc, char const* const argv[])
@@ -53,6 +53,11 @@ int main(int const argc, char const* const argv[])
 	RakNet::RakPeerInterface* peer = RakNet::RakPeerInterface::GetInstance();
 	RakNet::SocketDescriptor sd;
 	RakNet::Packet* packet;
+	
+	int gameNum;
+	int playerNum;
+	//gpro_battleship* myBoard;//player 1 board
+	//gpro_battleship* opponentBoard;//player 2 board
 
 	peer->Startup(1, &sd, 1);
 
@@ -118,7 +123,7 @@ int main(int const argc, char const* const argv[])
 //end of SP battleship stuff
 */
 
-	peer->Connect("172.16.2.63", SERVER_PORT, 0, 0);
+	peer->Connect("172.16.2.60", SERVER_PORT, 0, 0);
 
 	RakNet::BitStream bsOut;
 	RakNet::Time time;
@@ -213,7 +218,13 @@ int main(int const argc, char const* const argv[])
 					RakNet::BitStream bsIn(packet->data, packet->length, false);
 					bsIn.IgnoreBytes(sizeof(RakNet::MessageID));
 					bsIn.Read(rs);
-					printf("%s\n", rs.C_String());
+
+					//Stores game number and player number
+					int tempInt = std::stoi(rs.C_String());
+					gameNum = tempInt / 10;
+					playerNum = tempInt % 10;
+
+					printf("Joined game %d as Player %d\n", gameNum, playerNum);
 
 					printf("Awaiting another player...\n");
 

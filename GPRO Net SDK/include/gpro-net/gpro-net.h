@@ -72,9 +72,6 @@ struct Vec2
 	int y;
 };
 
-
-
-
 namespace RakNet
 {
 	inline RakNet::BitStream& operator << (RakNet::BitStream& out, bs_Message& in)
