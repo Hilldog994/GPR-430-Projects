@@ -36,6 +36,15 @@ namespace gproNet
 		peer->SetMaximumIncomingConnections(MAX_CLIENTS);
 	}
 
+	cRakNetServer::cRakNetServer(int serverPort)
+	{
+		RakNet::SocketDescriptor sd(serverPort, 0);
+		unsigned short MAX_CLIENTS = 10;
+
+		peer->Startup(MAX_CLIENTS, &sd, 1);
+		peer->SetMaximumIncomingConnections(MAX_CLIENTS);
+	}
+
 	cRakNetServer::~cRakNetServer()
 	{
 		peer->Shutdown(0);

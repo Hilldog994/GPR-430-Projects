@@ -53,6 +53,7 @@ namespace gproNet
 		// cRakNetServer
 		//	Default constructor.
 		cRakNetServer();
+		cRakNetServer(int serverPort);
 
 		// ~cRakNetServer
 		//	Destructor.

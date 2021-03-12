@@ -67,6 +67,8 @@ namespace gproNet
 		//		param msgID: message identifier
 		//		return: was message processed
 		virtual bool ProcessMessage(RakNet::BitStream& bitstream, RakNet::SystemAddress const sender, RakNet::Time const dtSendToReceive, RakNet::MessageID const msgID);
+
+		void ConnectToPort(int port);
 	};
 
 }

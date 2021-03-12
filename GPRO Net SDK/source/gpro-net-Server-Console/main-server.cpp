@@ -27,11 +27,17 @@
 
 int main(int const argc, char const* const argv[])
 {
-	gproNet::cRakNetServer server;
+	gproNet::cRakNetServer mainServer;
+	gproNet::cRakNetServer subServer(2222);
+
+	//list of game servers with different ports
 
 	while (1)
 	{
-		server.MessageLoop();
+		mainServer.MessageLoop();
+
+		subServer.MessageLoop();
+		//message loops of game servers
 	}
 
 	printf("\n\n");

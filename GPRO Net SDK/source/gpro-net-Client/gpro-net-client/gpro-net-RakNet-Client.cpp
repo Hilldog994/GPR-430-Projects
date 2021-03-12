@@ -63,9 +63,11 @@ namespace gproNet
 			//printf("The server is full.\n");
 			return true;
 		case ID_DISCONNECTION_NOTIFICATION:
+			//connect back to main server
 			//printf("We have been disconnected.\n");
 			return true;
 		case ID_CONNECTION_LOST:
+			//connect back to main server
 			//printf("Connection lost.\n");
 			return true;
 
@@ -82,9 +84,19 @@ namespace gproNet
 		{
 			// client receives greeting, just print it
 			ReadTest(bitstream);
+			ConnectToPort(2222);
 		}	return true;
 
 		}
 		return false;
+	}
+	void cRakNetClient::ConnectToPort(int port)
+	{
+		RakNet::SocketDescriptor sd;
+		char SERVER_IP[16] = "127.0.0.1";
+
+		peer->Startup(1, &sd, 1);
+		peer->SetMaximumIncomingConnections(0);
+		peer->Connect(SERVER_IP, port, 0, 0);
 	}
 }
