@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -18,7 +20,7 @@ public class ClientMain : MonoBehaviour
     const int MAX_PACKET_SIZE = 1024;
 
 
-    int hostID;
+    private int hostID, connectionID;
     byte TCPChannel, UDPChannel;
     byte error;//error output, https://docs.unity3d.com/ScriptReference/Networking.NetworkError.html
 
@@ -52,7 +54,7 @@ public class ClientMain : MonoBehaviour
         hostID = NetworkTransport.AddHost(topology, 0);
 
         //connect to the server
-        NetworkTransport.Connect(hostID, SERVER_IP, PORT, 0, out error);
+        connectionID = NetworkTransport.Connect(hostID, SERVER_IP, PORT, 0, out error);
 
         Debug.Log(string.Format("Attempting connection to IP {0}", SERVER_IP));
         connected = true;
@@ -85,13 +87,53 @@ public class ClientMain : MonoBehaviour
                 Debug.Log("Disconnected from the server");
                 break;
             case NetworkEventType.DataEvent://custom data
-                Debug.Log("Custom data");
+                BinaryFormatter formatter = new BinaryFormatter();
+                MemoryStream ms = new MemoryStream(recievedPacket);
+                //get serialized message and deserialize it back into a normal message
+                NetworkMessage msg = (NetworkMessage)formatter.Deserialize(ms);
+
+                DataMessageCheck(connectionID, channelID, recievedHostID, msg);
                 break;
             default:
             case NetworkEventType.BroadcastEvent:
                 Debug.Log("Unexpected message type");
                 break;
         }
+    }
+
+    private void DataMessageCheck(int connectionID, int channelID, int recievedHostID, NetworkMessage msg)
+    {
+        //do different things depending on the message type
+        switch (msg.type)
+        {
+            case MsgType.NONE:
+                Debug.Log("Should not happen");
+                break;
+
+        }
+    }
+
+    public void TestSendPosition()
+    {
+        PositionMessage pMsg = new PositionMessage();
+        pMsg.x = 2.5f;
+        pMsg.y = 4.5f;
+        pMsg.z = 1.5f;
+        SendMessageToServer(pMsg);
+    }
+
+    public void SendMessageToServer(NetworkMessage msg)
+    {
+        //byte array to hold message data
+        byte[] buffer = new byte[MAX_PACKET_SIZE];
+
+        BinaryFormatter formatter = new BinaryFormatter();
+        MemoryStream ms = new MemoryStream(buffer);
+
+        //serializes the message before sending it over
+        formatter.Serialize(ms, msg);
+
+        NetworkTransport.Send(hostID, connectionID, TCPChannel, buffer, MAX_PACKET_SIZE, out error);
     }
 
     private void Shutdown()

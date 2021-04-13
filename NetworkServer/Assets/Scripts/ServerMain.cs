@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 /*
@@ -82,7 +84,13 @@ public class ServerMain : MonoBehaviour
                 Debug.Log(string.Format("User {0} has disconnected from the server", connectionID));
                 break;
             case NetworkEventType.DataEvent://custom data
-                Debug.Log("Custom data");
+                //Debug.Log(recievedPacket[0]);
+                BinaryFormatter formatter = new BinaryFormatter();
+                MemoryStream ms = new MemoryStream(recievedPacket);
+                //get serialized message and deserialize it back into a normal message
+                NetworkMessage msg = (NetworkMessage)formatter.Deserialize(ms);
+
+                DataMessageCheck(connectionID, channelID, recievedHostID, msg);
                 break;
             default:
             case NetworkEventType.BroadcastEvent:
@@ -90,6 +98,38 @@ public class ServerMain : MonoBehaviour
                 break;
         }
 
+    }
+
+    private void DataMessageCheck(int connectionID, int channelID, int recievedHostID, NetworkMessage msg)
+    {
+        //do different things depending on the message type
+        switch (msg.type)
+        {
+            case MsgType.NONE:
+                Debug.Log("Should not happen");
+                break;
+            
+            case MsgType.POSITION:
+                PositionMessage pMsg = (PositionMessage)msg;
+                Debug.Log(string.Format("xPos: {0}, yPos: {1}, zPos: {2}", pMsg.x, pMsg.y, pMsg.z));
+                break;
+            
+        }
+    }
+
+    public void SendMessageToClient(NetworkMessage msg, int connectionID)
+    {
+        //byte array to hold message data
+        byte[] buffer = new byte[MAX_PACKET_SIZE];
+
+        //convert data into a byte array
+        BinaryFormatter formatter = new BinaryFormatter();
+        MemoryStream ms = new MemoryStream(buffer);
+
+        formatter.Serialize(ms, msg);
+        buffer[0] = 200;
+
+        NetworkTransport.Send(hostID, connectionID, TCPChannel, buffer, MAX_PACKET_SIZE, out error);
     }
 
     private void Shutdown()
