@@ -3,8 +3,8 @@
 //Different message types
 public static class MsgType
 {
-    public const int NONE = 0;
-    public const int POSITION = 1;
+    public const byte NONE = 0;
+    public const byte POSITION = 1;
 };
 
 

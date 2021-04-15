@@ -14,6 +14,10 @@ https://www.youtube.com/playlist?list=PLLH3mUGkfFCVSV6Q1UJE7Ge6UfhGzRAnH
 
 public class ClientMain : MonoBehaviour
 {
+    public static ClientMain instance;
+
+    public GameObject playerPrefab;
+
     const int MAX_USERS = 12;
     const int PORT = 7777;
     const string SERVER_IP = "127.0.0.1";//localhost, server is on this computer
@@ -26,10 +30,22 @@ public class ClientMain : MonoBehaviour
 
     bool connected;
 
+    public struct Player
+    {
+        public int conID;
+        public GameObject obj;
+        public string displayName;
+    }
+
+    Dictionary<int, Player> players = new Dictionary<int, Player>();
     // Start is called before the first frame update
     void Start()
     {
         DontDestroyOnLoad(gameObject); //dont get rid of client between scenes
+        if(!instance)
+        {
+            instance = this;
+        }
         InitServer();
     }
 
@@ -109,16 +125,60 @@ public class ClientMain : MonoBehaviour
             case MsgType.NONE:
                 Debug.Log("Should not happen");
                 break;
-
+            case MsgType.POSITION:
+                SetClientPos(connectionID, (PositionMessage)msg);
+                break;
+          //case MsgType.ONCONNECT:
+                //SpawnPlayer(connectionID,(ClientConnectMessage)msg)
         }
     }
 
-    public void TestSendPosition()
+    private void SetClientPos(int cnnID, NetworkMessage msg)
+    {
+        if(cnnID != connectionID)//only set if not ours
+        {
+            //get current position
+            //compare with gotten position
+            //lerp it up
+            //set position
+        }
+    }
+
+    //When player is connected to the server, will be sent a message and need to now spawn that client in our local game
+    private void SpawnPlayer(int cnnID, string name,NetworkMessage msg) //msg has name, starting position, id too prob
+    {
+        GameObject go = Instantiate(playerPrefab);
+        if(cnnID == connectionID)
+        {
+            //Give player control component to this object since it is ours so we can move it
+            //set some isStarted to true
+        }
+
+        Player p = new Player();
+        p.conID = cnnID;
+        p.obj = go;
+        p.displayName = name;
+        p.obj.GetComponentInChildren<TextMesh>().text = name;
+
+        players.Add(cnnID, p);//add player to player list
+    }
+
+    //When player is disconnected from server, will be sent a message and do this in response
+    private void RemovePlayer(int cnnID)
+    {
+        Destroy(players[cnnID].obj);//remove local copy of the game object
+        players.Remove(cnnID);//remove player from players list
+    }
+
+    //Sends the position data of our player to the server
+    public void SendOurPosition()
     {
         PositionMessage pMsg = new PositionMessage();
-        pMsg.x = 2.5f;
-        pMsg.y = 4.5f;
-        pMsg.z = 1.5f;
+        //gets the position of our game object from the player list
+        Vector3 pos = players[connectionID].obj.transform.position;
+        pMsg.x = pos.x;
+        pMsg.y = pos.y;
+        pMsg.z = pos.z;
         SendMessageToServer(pMsg);
     }
 

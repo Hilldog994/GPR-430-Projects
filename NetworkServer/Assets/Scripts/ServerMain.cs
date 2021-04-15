@@ -26,6 +26,13 @@ public class ServerMain : MonoBehaviour
 
     bool serverStarted;
 
+    public struct Client
+    {
+        public int conID;
+        public string displayName;
+    }
+
+    Dictionary<int,Client> clients = new Dictionary<int, Client>();
     // Start is called before the first frame update
     void Start()
     {
@@ -79,9 +86,15 @@ public class ServerMain : MonoBehaviour
                 break;
             case NetworkEventType.ConnectEvent://connection
                 Debug.Log(string.Format("User {0} has connected to the server", connectionID));
+                //Add new client to list
+                Client c = new Client();
+                c.conID = connectionID;
+                c.displayName = (string.Format("Player{0}", connectionID));
+                clients.Add(connectionID, c); //adds client through its connection ID
                 break;
             case NetworkEventType.DisconnectEvent://disconnection
                 Debug.Log(string.Format("User {0} has disconnected from the server", connectionID));
+                clients.Remove(connectionID);//reomves corresponding client with id from the list
                 break;
             case NetworkEventType.DataEvent://custom data
                 //Debug.Log(recievedPacket[0]);
@@ -117,6 +130,16 @@ public class ServerMain : MonoBehaviour
         }
     }
 
+    public void SendToAllClients(NetworkMessage msg)
+    {
+        //check every pair in the dictionary
+        foreach(KeyValuePair<int,Client> cEntry in clients)
+        {
+            //key is the connectionID of client so use that
+            SendMessageToClient(msg, cEntry.Key);
+        }
+    }
+
     public void SendMessageToClient(NetworkMessage msg, int connectionID)
     {
         //byte array to hold message data
@@ -127,7 +150,6 @@ public class ServerMain : MonoBehaviour
         MemoryStream ms = new MemoryStream(buffer);
 
         formatter.Serialize(ms, msg);
-        buffer[0] = 200;
 
         NetworkTransport.Send(hostID, connectionID, TCPChannel, buffer, MAX_PACKET_SIZE, out error);
     }
