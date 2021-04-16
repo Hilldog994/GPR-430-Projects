@@ -8,6 +8,7 @@ public static class MsgType
     public const int CLIENTCONNECTSELF = 2;
     public const int CLIENTCONNECTOTHER = 3;
     public const int CLIENTDISCONNECT = 4;
+    public const int POSITIONASK = 5;
 };
 
 

@@ -25,12 +25,13 @@ public class ClientMain : MonoBehaviour
 
     private int myClientID;
     private int hostID, connectionID;
-    byte TCPChannel, UDPChannel;
+    byte TCPChannel, UDPChannel, ReliableOrderedChannel;
     byte error;//error output, https://docs.unity3d.com/ScriptReference/Networking.NetworkError.html
 
     bool connected;
+    bool started;
 
-    public struct Player
+    public class Player //need class to be able to modify existing entries, struct doesnt let you modify
     {
         public int conID;
         public GameObject obj;
@@ -38,6 +39,10 @@ public class ClientMain : MonoBehaviour
     }
 
     Dictionary<int, Player> players = new Dictionary<int, Player>();
+
+
+    float lastMoveUpdate;
+    float movementUpdateRate = 0.2f;
     // Start is called before the first frame update
     void Start()
     {
@@ -54,6 +59,14 @@ public class ClientMain : MonoBehaviour
     void Update()
     {
         MessageLoop();
+
+        if (started && Time.time - lastMoveUpdate > movementUpdateRate)
+        {
+            lastMoveUpdate = Time.time;
+            SendOurPosition();
+
+
+        }
     }
 
     private void InitServer()
@@ -64,6 +77,7 @@ public class ClientMain : MonoBehaviour
         ConnectionConfig cc = new ConnectionConfig();
         TCPChannel = cc.AddChannel(QosType.Reliable);
         UDPChannel = cc.AddChannel(QosType.Unreliable);
+        ReliableOrderedChannel = cc.AddChannel(QosType.ReliableSequenced);
 
         HostTopology topology = new HostTopology(cc, MAX_USERS);
 
@@ -126,7 +140,7 @@ public class ClientMain : MonoBehaviour
                 Debug.Log("Should not happen");
                 break;
             case MsgType.POSITION:
-                SetClientPos(connectionID, (PositionMessage)msg);
+                SetClientPos((PositionMessage)msg);
                 break;
             case MsgType.CLIENTCONNECTSELF:
                 ConnectMessage cm = (ConnectMessage)msg;
@@ -142,14 +156,18 @@ public class ClientMain : MonoBehaviour
         }
     }
 
-    private void SetClientPos(int cnnID, NetworkMessage msg)
+    private void SetClientPos(PositionMessage msg)
     {
-        if(cnnID != connectionID)//only set if not ours
+        if(msg.cnnID != myClientID)//only set if not ours
         {
+            Vector3 currentPos = players[msg.cnnID].obj.transform.position;
+            Vector3 serverPos = new Vector3(msg.x, msg.y, msg.z);
             //get current position
             //compare with gotten position
+            //Vector3 lerped = Vector3.Lerp(currentPos, serverPos, .7f);
             //lerp it up
             //set position
+            players[msg.cnnID].obj.transform.position = serverPos;
         }
     }
 
@@ -162,7 +180,7 @@ public class ClientMain : MonoBehaviour
         {
             //Give player control component to this object since it is ours so we can move it
             go.AddComponent<PlayerMovement>();
-            //set some isStarted to true
+            started = true;
         }
 
         Player p = new Player();
@@ -188,6 +206,7 @@ public class ClientMain : MonoBehaviour
         PositionMessage pMsg = new PositionMessage();
         //gets the position of our game object from the player list
         Vector3 pos = players[myClientID].obj.transform.position;
+        pMsg.cnnID = myClientID;
         pMsg.x = pos.x;
         pMsg.y = pos.y;
         pMsg.z = pos.z;

@@ -20,16 +20,17 @@ public class ServerMain : MonoBehaviour
     const int MAX_PACKET_SIZE = 1024;
 
     int hostID;
-    byte TCPChannel, UDPChannel;
+    byte TCPChannel, UDPChannel, ReliableOrderedChannel;
     byte error;//error output
 
 
     bool serverStarted;
 
-    public struct Client
+    public class Client//need class to be able to modify existing entries, struct doesnt let you modify
     {
         public int conID;
         public string displayName;
+        public Vector3 pos;
     }
 
     Dictionary<int,Client> clients = new Dictionary<int, Client>();
@@ -45,6 +46,14 @@ public class ServerMain : MonoBehaviour
     void Update()
     {
         MessageLoop();
+        /*if(Time.time - lastMoveUpdate > movementUpdateRate)
+        {
+            lastMoveUpdate = Time.time;
+            PositionAskMessage pMsg = new PositionAskMessage();
+            SendToAllClients(pMsg, UDPChannel);//send ask for position message to all clients
+            
+
+        }*/
     }
 
     private void InitServer()
@@ -55,6 +64,7 @@ public class ServerMain : MonoBehaviour
         ConnectionConfig cc = new ConnectionConfig();
         TCPChannel = cc.AddChannel(QosType.Reliable);
         UDPChannel = cc.AddChannel(QosType.Unreliable);
+        ReliableOrderedChannel = cc.AddChannel(QosType.ReliableSequenced);
 
         HostTopology topology = new HostTopology(cc, MAX_USERS);
 
@@ -119,13 +129,14 @@ public class ServerMain : MonoBehaviour
         cntMessage.cnnID = connectionID;
         cntMessage.name = c.displayName;
 
-        SendMessageToClient(cntMessage,connectionID, TCPChannel);
-        SendCurrentClientList(connectionID);//send list of current clients so they can update their player list to correct initial spot
+        //send these messages in order so that client updates its server connection ID before anything else
+        SendMessageToClient(cntMessage,connectionID, ReliableOrderedChannel);
+        SendCurrentClientList(connectionID, ReliableOrderedChannel);//send list of current clients so they can update their player list to correct initial spot
         clients.Add(connectionID, c); //adds client to dictionary through its connection ID
         ConnectMessageOther coMsg = new ConnectMessageOther();
         coMsg.cnnID = connectionID;
         coMsg.name = c.displayName;
-        SendToAllClients(coMsg, TCPChannel); //send message that this client connected to everyone so they can update
+        SendToAllClients(coMsg, ReliableOrderedChannel); //send message that this client connected to everyone so they can update
 
     }
 
@@ -139,15 +150,18 @@ public class ServerMain : MonoBehaviour
         SendToAllClients(disMsg, TCPChannel);
     }
 
-    private void SendCurrentClientList(int connectionID)
+    private void SendCurrentClientList(int connectionID,byte channelID)
     {
         foreach(KeyValuePair<int,Client> pair in clients)
         {
             ConnectMessageOther cMsg = new ConnectMessageOther();
             cMsg.cnnID = pair.Key;
             cMsg.name = pair.Value.displayName;
-            
-            SendMessageToClient(cMsg, connectionID, TCPChannel);
+            cMsg.initX = pair.Value.pos.x;
+            cMsg.initY = pair.Value.pos.y;
+            cMsg.initZ = pair.Value.pos.z;
+
+            SendMessageToClient(cMsg, connectionID, channelID);
 
         }
     }
@@ -161,11 +175,17 @@ public class ServerMain : MonoBehaviour
                 break;
             
             case MsgType.POSITION:
-                PositionMessage pMsg = (PositionMessage)msg;
-                Debug.Log(string.Format("xPos: {0}, yPos: {1}, zPos: {2}", pMsg.x, pMsg.y, pMsg.z));
+                UpdateClientsPosition((PositionMessage)msg);
                 break;
             
         }
+    }
+
+    void UpdateClientsPosition(PositionMessage pMsg)
+    {
+        Debug.Log(string.Format("xPos: {0}, yPos: {1}, zPos: {2}", pMsg.x, pMsg.y, pMsg.z));
+        clients[pMsg.cnnID].pos = new Vector3(pMsg.x, pMsg.y, pMsg.z);
+        SendToAllClients(pMsg, UDPChannel);
     }
 
     public void SendToAllClients(NetworkMessage msg, byte channelID)

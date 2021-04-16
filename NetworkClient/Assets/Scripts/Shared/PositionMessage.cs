@@ -9,6 +9,7 @@ public class PositionMessage : NetworkMessage
         type = MsgType.POSITION;
     }
 
+    public int cnnID { get; set; }
     //position data, floats instead of vector3 because it has to be serializable 
     public float x { get; set; }
     public float y { get; set; }
