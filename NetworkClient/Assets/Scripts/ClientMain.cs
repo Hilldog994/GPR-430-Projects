@@ -23,7 +23,7 @@ public class ClientMain : MonoBehaviour
     const string SERVER_IP = "127.0.0.1";//localhost, server is on this computer
     const int MAX_PACKET_SIZE = 1024;
 
-
+    private int myClientID;
     private int hostID, connectionID;
     byte TCPChannel, UDPChannel;
     byte error;//error output, https://docs.unity3d.com/ScriptReference/Networking.NetworkError.html
@@ -128,8 +128,17 @@ public class ClientMain : MonoBehaviour
             case MsgType.POSITION:
                 SetClientPos(connectionID, (PositionMessage)msg);
                 break;
-          //case MsgType.ONCONNECT:
-                //SpawnPlayer(connectionID,(ClientConnectMessage)msg)
+            case MsgType.CLIENTCONNECTSELF:
+                ConnectMessage cm = (ConnectMessage)msg;
+                myClientID = cm.cnnID; //initialize our server ID so we know what it is
+                break;
+            case MsgType.CLIENTCONNECTOTHER:
+                SpawnPlayer((ConnectMessageOther)msg);
+                break;
+            case MsgType.CLIENTDISCONNECT:
+                RemovePlayer((DisconnectMessage)msg);
+                break;
+
         }
     }
 
@@ -145,29 +154,32 @@ public class ClientMain : MonoBehaviour
     }
 
     //When player is connected to the server, will be sent a message and need to now spawn that client in our local game
-    private void SpawnPlayer(int cnnID, string name,NetworkMessage msg) //msg has name, starting position, id too prob
+    private void SpawnPlayer(ConnectMessageOther msg) //msg has name, starting position, id too prob
     {
         GameObject go = Instantiate(playerPrefab);
-        if(cnnID == connectionID)
+
+        if (msg.cnnID == myClientID)
         {
             //Give player control component to this object since it is ours so we can move it
+            go.AddComponent<PlayerMovement>();
             //set some isStarted to true
         }
 
         Player p = new Player();
-        p.conID = cnnID;
+        p.conID = msg.cnnID;
         p.obj = go;
-        p.displayName = name;
-        p.obj.GetComponentInChildren<TextMesh>().text = name;
+        p.displayName = msg.name;
+        p.obj.GetComponentInChildren<TextMesh>().text = msg.name;
 
-        players.Add(cnnID, p);//add player to player list
+        players.Add(msg.cnnID, p);//add player to player list
+
     }
 
     //When player is disconnected from server, will be sent a message and do this in response
-    private void RemovePlayer(int cnnID)
+    private void RemovePlayer(DisconnectMessage msg)
     {
-        Destroy(players[cnnID].obj);//remove local copy of the game object
-        players.Remove(cnnID);//remove player from players list
+        Destroy(players[msg.cnnID].obj);//remove local copy of the game object
+        players.Remove(msg.cnnID);//remove player from players list
     }
 
     //Sends the position data of our player to the server
@@ -175,14 +187,14 @@ public class ClientMain : MonoBehaviour
     {
         PositionMessage pMsg = new PositionMessage();
         //gets the position of our game object from the player list
-        Vector3 pos = players[connectionID].obj.transform.position;
+        Vector3 pos = players[myClientID].obj.transform.position;
         pMsg.x = pos.x;
         pMsg.y = pos.y;
         pMsg.z = pos.z;
-        SendMessageToServer(pMsg);
+        SendMessageToServer(pMsg,UDPChannel);
     }
 
-    public void SendMessageToServer(NetworkMessage msg)
+    public void SendMessageToServer(NetworkMessage msg,byte channelID)
     {
         //byte array to hold message data
         byte[] buffer = new byte[MAX_PACKET_SIZE];
@@ -193,7 +205,7 @@ public class ClientMain : MonoBehaviour
         //serializes the message before sending it over
         formatter.Serialize(ms, msg);
 
-        NetworkTransport.Send(hostID, connectionID, TCPChannel, buffer, MAX_PACKET_SIZE, out error);
+        NetworkTransport.Send(hostID, connectionID, channelID, buffer, MAX_PACKET_SIZE, out error);
     }
 
     private void Shutdown()

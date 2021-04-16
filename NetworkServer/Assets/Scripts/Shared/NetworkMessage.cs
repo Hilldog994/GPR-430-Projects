@@ -3,8 +3,11 @@
 //Different message types
 public static class MsgType
 {
-    public const byte NONE = 0;
-    public const byte POSITION = 1;
+    public const int NONE = 0;
+    public const int POSITION = 1;
+    public const int CLIENTCONNECTSELF = 2;
+    public const int CLIENTCONNECTOTHER = 3;
+    public const int CLIENTDISCONNECT = 4;
 };
 
 

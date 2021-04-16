@@ -86,15 +86,11 @@ public class ServerMain : MonoBehaviour
                 break;
             case NetworkEventType.ConnectEvent://connection
                 Debug.Log(string.Format("User {0} has connected to the server", connectionID));
-                //Add new client to list
-                Client c = new Client();
-                c.conID = connectionID;
-                c.displayName = (string.Format("Player{0}", connectionID));
-                clients.Add(connectionID, c); //adds client through its connection ID
+                SendConnectedClientInfo(connectionID);  
                 break;
             case NetworkEventType.DisconnectEvent://disconnection
                 Debug.Log(string.Format("User {0} has disconnected from the server", connectionID));
-                clients.Remove(connectionID);//reomves corresponding client with id from the list
+                SendDisconnectClientInfo(connectionID);
                 break;
             case NetworkEventType.DataEvent://custom data
                 //Debug.Log(recievedPacket[0]);
@@ -113,6 +109,48 @@ public class ServerMain : MonoBehaviour
 
     }
 
+    private void SendConnectedClientInfo(int connectionID)
+    {
+        //add new client to list
+        Client c = new Client();
+        c.conID = connectionID;
+        c.displayName = (string.Format("Player{0}", connectionID));
+        ConnectMessage cntMessage = new ConnectMessage();
+        cntMessage.cnnID = connectionID;
+        cntMessage.name = c.displayName;
+
+        SendMessageToClient(cntMessage,connectionID, TCPChannel);
+        SendCurrentClientList(connectionID);//send list of current clients so they can update their player list to correct initial spot
+        clients.Add(connectionID, c); //adds client to dictionary through its connection ID
+        ConnectMessageOther coMsg = new ConnectMessageOther();
+        coMsg.cnnID = connectionID;
+        coMsg.name = c.displayName;
+        SendToAllClients(coMsg, TCPChannel); //send message that this client connected to everyone so they can update
+
+    }
+
+    private void SendDisconnectClientInfo(int connectionID)
+    {
+        clients.Remove(connectionID);//removes corresponding client with id from the server's list
+
+        DisconnectMessage disMsg = new DisconnectMessage();
+        disMsg.cnnID = connectionID;
+
+        SendToAllClients(disMsg, TCPChannel);
+    }
+
+    private void SendCurrentClientList(int connectionID)
+    {
+        foreach(KeyValuePair<int,Client> pair in clients)
+        {
+            ConnectMessageOther cMsg = new ConnectMessageOther();
+            cMsg.cnnID = pair.Key;
+            cMsg.name = pair.Value.displayName;
+            
+            SendMessageToClient(cMsg, connectionID, TCPChannel);
+
+        }
+    }
     private void DataMessageCheck(int connectionID, int channelID, int recievedHostID, NetworkMessage msg)
     {
         //do different things depending on the message type
@@ -130,17 +168,17 @@ public class ServerMain : MonoBehaviour
         }
     }
 
-    public void SendToAllClients(NetworkMessage msg)
+    public void SendToAllClients(NetworkMessage msg, byte channelID)
     {
         //check every pair in the dictionary
         foreach(KeyValuePair<int,Client> cEntry in clients)
         {
             //key is the connectionID of client so use that
-            SendMessageToClient(msg, cEntry.Key);
+            SendMessageToClient(msg, cEntry.Key, channelID);
         }
     }
 
-    public void SendMessageToClient(NetworkMessage msg, int connectionID)
+    public void SendMessageToClient(NetworkMessage msg, int connectionID, byte channelID)
     {
         //byte array to hold message data
         byte[] buffer = new byte[MAX_PACKET_SIZE];
@@ -151,7 +189,7 @@ public class ServerMain : MonoBehaviour
 
         formatter.Serialize(ms, msg);
 
-        NetworkTransport.Send(hostID, connectionID, TCPChannel, buffer, MAX_PACKET_SIZE, out error);
+        NetworkTransport.Send(hostID, connectionID, channelID, buffer, MAX_PACKET_SIZE, out error);
     }
 
     private void Shutdown()
