@@ -38,11 +38,11 @@ public class ClientMain : MonoBehaviour
         public string displayName;
     }
 
-    Dictionary<int, Player> players = new Dictionary<int, Player>();
+    Dictionary<int, ClonedPlayer> players = new Dictionary<int, ClonedPlayer>();
 
 
     float lastMoveUpdate;
-    float movementUpdateRate = 0.2f;
+    float movementUpdateRate = 0.1f;
     // Start is called before the first frame update
     void Start()
     {
@@ -160,14 +160,9 @@ public class ClientMain : MonoBehaviour
     {
         if(msg.cnnID != myClientID)//only set if not ours
         {
-            Vector3 currentPos = players[msg.cnnID].obj.transform.position;
             Vector3 serverPos = new Vector3(msg.x, msg.y, msg.z);
-            //get current position
-            //compare with gotten position
-            //Vector3 lerped = Vector3.Lerp(currentPos, serverPos, .7f);
-            //lerp it up
-            //set position
-            players[msg.cnnID].obj.transform.position = serverPos;
+
+            players[msg.cnnID].obj.GetComponent<ClonedPlayer>().SetServerPosition(serverPos);
         }
     }
 
@@ -182,8 +177,12 @@ public class ClientMain : MonoBehaviour
             go.AddComponent<PlayerMovement>();
             started = true;
         }
+        else
+        {
+            go.AddComponent<ClonedPlayer>();
+        }
 
-        Player p = new Player();
+        ClonedPlayer p = new ClonedPlayer();
         p.conID = msg.cnnID;
         p.obj = go;
         p.displayName = msg.name;
