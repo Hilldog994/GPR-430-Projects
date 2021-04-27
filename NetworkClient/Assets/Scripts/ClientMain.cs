@@ -64,8 +64,6 @@ public class ClientMain : MonoBehaviour
         {
             lastMoveUpdate = Time.time;
             SendOurPosition();
-
-
         }
     }
 
@@ -144,6 +142,7 @@ public class ClientMain : MonoBehaviour
                 break;
             case MsgType.CLIENTCONNECTSELF:
                 ConnectMessage cm = (ConnectMessage)msg;
+                Debug.Log(string.Format("Our ID is {0}", cm.cnnID));
                 myClientID = cm.cnnID; //initialize our server ID so we know what it is
                 break;
             case MsgType.CLIENTCONNECTOTHER:
@@ -151,6 +150,10 @@ public class ClientMain : MonoBehaviour
                 break;
             case MsgType.CLIENTDISCONNECT:
                 RemovePlayer((DisconnectMessage)msg);
+                break;
+            case MsgType.STARTGAME:
+                Debug.Log("Game started");
+                //remove whatever name setup canvas is there/load different scene
                 break;
 
         }
@@ -169,26 +172,33 @@ public class ClientMain : MonoBehaviour
     //When player is connected to the server, will be sent a message and need to now spawn that client in our local game
     private void SpawnPlayer(ConnectMessageOther msg) //msg has name, starting position, id too prob
     {
-        GameObject go = Instantiate(playerPrefab);
-
-        if (msg.cnnID == myClientID)
+        if (!players.ContainsKey(msg.cnnID)) //only spawn player if its not already in the list(prevents dupes) from someone new joining a room
         {
-            //Give player control component to this object since it is ours so we can move it
-            go.AddComponent<PlayerMovement>();
-            started = true;
-        }
-        else
-        {
-            go.AddComponent<ClonedPlayer>();
-        }
+            Debug.Log(string.Format("Spawning Player with ID: {0}, name: {1}", msg.cnnID, msg.name));
+            Vector3 pos = new Vector3(msg.initX, msg.initY, msg.initZ);
+            GameObject go = Instantiate(playerPrefab, pos, Quaternion.identity);
 
-        ClonedPlayer p = new ClonedPlayer();
-        p.conID = msg.cnnID;
-        p.obj = go;
-        p.displayName = msg.name;
-        p.obj.GetComponentInChildren<TextMesh>().text = msg.name;
+            if (msg.cnnID == myClientID)
+            {
+                //Give player control component to this object since it is ours so we can move it
+                go.AddComponent<PlayerMovement>();
+                started = true;
+                Debug.Log("spawned player");
+            }
+            else
+            {
+                go.AddComponent<ClonedPlayer>();
+                Debug.Log("spawned other");
+            }
 
-        players.Add(msg.cnnID, p);//add player to player list
+            ClonedPlayer p = new ClonedPlayer();
+            p.conID = msg.cnnID;
+            p.obj = go;
+            p.displayName = msg.name;
+            p.obj.GetComponentInChildren<TextMesh>().text = msg.name;
+
+            players.Add(msg.cnnID, p);//add player to player list
+        }
 
     }
 

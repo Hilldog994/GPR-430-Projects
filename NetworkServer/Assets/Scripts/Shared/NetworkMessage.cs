@@ -9,6 +9,7 @@ public static class MsgType
     public const int CLIENTCONNECTOTHER = 3;
     public const int CLIENTDISCONNECT = 4;
     public const int POSITIONASK = 5;
+    public const int STARTGAME = 6;
 };
 
 
