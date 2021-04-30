@@ -193,7 +193,6 @@ public class ServerMain : MonoBehaviour
         //send these messages in order so that client updates its server connection ID before anything else
         SendMessageToClient(cntMessage,connectionID, ReliableOrderedChannel);
         clients.Add(connectionID, c); //adds client to dictionary through its connection ID
-        AddClientToARoom(ref c); //add client to a room
 
         /*****probably do stuff down here in game start instead, do the room only instead of all clients
         SendCurrentClientList(connectionID, ReliableOrderedChannel);//send list of current clients so they can update their player list to correct initial spot
@@ -246,7 +245,13 @@ public class ServerMain : MonoBehaviour
             case MsgType.POSITION:
                 UpdateClientsPosition((PositionMessage)msg);
                 break;
-            
+            case MsgType.STARTGAME:
+            {
+                 Client temp = clients[connectionID];
+                 AddClientToARoom(ref temp); //add client to a room
+                 break;
+            }
+
         }
     }
 

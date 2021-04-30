@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 /*
  This playlist was used to help get the setup of the network transport API up and running for client and server
@@ -153,6 +154,7 @@ public class ClientMain : MonoBehaviour
                 break;
             case MsgType.STARTGAME:
                 Debug.Log("Game started");
+                GameObject.Find("Canvas").SetActive(false);
                 //remove whatever name setup canvas is there/load different scene
                 break;
 
@@ -220,6 +222,14 @@ public class ClientMain : MonoBehaviour
         pMsg.y = pos.y;
         pMsg.z = pos.z;
         SendMessageToServer(pMsg,UDPChannel);
+    }
+
+    public void SendRoomJoinRequest()
+    {
+        GameStartMessage gsMsg = new GameStartMessage();
+        gsMsg.cnnID = myClientID;
+        SendMessageToServer(gsMsg, TCPChannel);
+        GameObject.Find("RoomFindText").GetComponent<Text>().text = "Waiting for room to be full";
     }
 
     public void SendMessageToServer(NetworkMessage msg,byte channelID)
