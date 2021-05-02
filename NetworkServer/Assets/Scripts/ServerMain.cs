@@ -86,9 +86,10 @@ public class ServerMain : MonoBehaviour
     public class Client//need class to be able to modify existing entries, struct doesnt let you modify
     {
         public int conID;
-        public int roomNum;
+        public int roomNum = -1;
         public string displayName;
         public Vector3 pos = Vector3.zero;
+        public Vector3 velocity = Vector3.zero;
     }
 
     Dictionary<int,Client> clients = new Dictionary<int, Client>();
@@ -210,8 +211,11 @@ public class ServerMain : MonoBehaviour
         disMsg.cnnID = connectionID;
 
         //SendToAllClients(disMsg, TCPChannel);
-        SendToOtherClientInRoom(disMsg, connectionID, TCPChannel, clients[connectionID].roomNum);
-        gameRoomsList[clients[connectionID].roomNum].RemoveClientFromRoom(clients[connectionID]);
+        if (clients[connectionID].roomNum >= 0)
+        {
+            SendToOtherClientInRoom(disMsg, connectionID, TCPChannel, clients[connectionID].roomNum);
+            gameRoomsList[clients[connectionID].roomNum].RemoveClientFromRoom(clients[connectionID]);
+        }
         clients.Remove(connectionID);//removes corresponding client with id from the server's list
     }
 
@@ -261,6 +265,7 @@ public class ServerMain : MonoBehaviour
         //Debug.Log(string.Format("xPos: {0}, yPos: {1}, zPos: {2}", pMsg.x, pMsg.y, pMsg.z));
         //set clients position to what its local value was
         clients[pMsg.cnnID].pos = new Vector3(pMsg.x, pMsg.y, pMsg.z);
+        clients[pMsg.cnnID].velocity = new Vector3(pMsg.xSpeed, pMsg.ySpeed, pMsg.zSpeed);
 
         //send that updated position to the clients in the room(others dont need to know the information)
         SendToOtherClientInRoom(pMsg, pMsg.cnnID, UDPChannel, clients[pMsg.cnnID].roomNum);

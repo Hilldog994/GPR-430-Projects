@@ -166,8 +166,9 @@ public class ClientMain : MonoBehaviour
         if(msg.cnnID != myClientID)//only set if not ours
         {
             Vector3 serverPos = new Vector3(msg.x, msg.y, msg.z);
+            Vector3 serverVel = new Vector3(msg.xSpeed, msg.ySpeed, msg.zSpeed);
 
-            players[msg.cnnID].obj.GetComponent<ClonedPlayer>().SetServerPosition(serverPos);
+            players[msg.cnnID].obj.GetComponent<ClonedPlayer>().SetServerPosition(serverPos, serverVel);
         }
     }
 
@@ -217,10 +218,14 @@ public class ClientMain : MonoBehaviour
         PositionMessage pMsg = new PositionMessage();
         //gets the position of our game object from the player list
         Vector3 pos = players[myClientID].obj.transform.position;
+        Vector3 velocity = players[myClientID].obj.GetComponent<PlayerMovement>().GetVelocity();
         pMsg.cnnID = myClientID;
         pMsg.x = pos.x;
         pMsg.y = pos.y;
         pMsg.z = pos.z;
+        pMsg.xSpeed = velocity.x;
+        pMsg.ySpeed = velocity.y;
+        pMsg.zSpeed = velocity.z;
         SendMessageToServer(pMsg,UDPChannel);
     }
 

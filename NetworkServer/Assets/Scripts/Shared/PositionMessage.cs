@@ -14,4 +14,8 @@ public class PositionMessage : NetworkMessage
     public float x { get; set; }
     public float y { get; set; }
     public float z { get; set; }
+
+    public float xSpeed { get; set; }
+    public float ySpeed { get; set; }
+    public float zSpeed { get; set; }
 }

@@ -6,9 +6,10 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController cont;
-    float moveSpeed = 4.0f;
-    float jumpSpeed = 20.0f;
-    float gravity = 60f;
+    public float moveSpeed = 4.5f;
+    public float jumpSpeed = 20.0f;
+    public float gravity = 60f;
+    Vector3 move = Vector2.zero;
 
     float vertVelocity;
 
@@ -18,15 +19,35 @@ public class PlayerMovement : MonoBehaviour
         cont = GetComponent<CharacterController>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         CheckInput();
+    }
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        Move();
+    }
+
+    public Vector3 GetVelocity()
+    {
+        if (cont)
+            return cont.velocity;
+        else
+            return Vector3.zero;
+    }
+    private void Move()
+    {
+        if (!cont.isGrounded)
+        {
+            vertVelocity -= gravity * Time.fixedDeltaTime;
+        }
+        move.y = vertVelocity;
+        cont.Move(move * Time.fixedDeltaTime);
     }
 
     private void CheckInput()
     {
-        Vector3 move = Vector2.zero;
         move.x = Input.GetAxis("Horizontal");
         move.z = Input.GetAxis("Vertical");
 
@@ -36,13 +57,6 @@ public class PlayerMovement : MonoBehaviour
         {
             vertVelocity = jumpSpeed;
         }
-        else
-        {
-            vertVelocity -= gravity * Time.deltaTime;
-        }
 
-        move.y = vertVelocity;
-
-        cont.Move(move * Time.deltaTime);
     }
 }
