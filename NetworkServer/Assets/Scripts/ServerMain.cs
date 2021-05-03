@@ -12,11 +12,6 @@ https://www.youtube.com/playlist?list=PLLH3mUGkfFCVSV6Q1UJE7Ge6UfhGzRAnH
  */
 
 
-/*
- * TODO: Have room connected message, and game start message. Room connect lets client know its found a room, game start when both clients in a room are connected
- * (probably do the connection message as game start or something,
- */
-
 
 public class ServerMain : MonoBehaviour
 {

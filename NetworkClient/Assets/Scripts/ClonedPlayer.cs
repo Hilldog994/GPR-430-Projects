@@ -30,10 +30,10 @@ public class ClonedPlayer : MonoBehaviour
     {
         lastServerUpdatePos = pos;
         lastServerUpdateVel = vel;
-        //get current position through kinematics
+        //get new position through kinematics
         positionToLerpTo = transform.position + lastServerUpdateVel * Time.fixedDeltaTime;
         //compare with gotten position from server
-        if (Vector3.Distance(transform.position,pos) > distanceThreshold)
+        if (Vector3.Distance(positionToLerpTo,pos) > distanceThreshold)
         {
             //if its too far away from your predicted location, go directly there instead of prediction
             positionToLerpTo = lastServerUpdatePos;
@@ -41,7 +41,7 @@ public class ClonedPlayer : MonoBehaviour
         }
         else
         {
-            positionToLerpTo = Vector3.Lerp(transform.position, lastServerUpdatePos, .7f); //lerp towards server position, 0 favors client, 1 favors server
+            positionToLerpTo = Vector3.Lerp(positionToLerpTo, lastServerUpdatePos, .7f); //lerp towards server position, 0 favors client, 1 favors server
         }
     }
 
